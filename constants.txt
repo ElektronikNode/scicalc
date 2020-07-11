@@ -1,0 +1,15 @@
+
+
+pi      Kreiszahl
+
+_g      Erdbeschleunigung
+_G      Gravitationskonstante
+	
+_mu0    Permeabilität des Vakuums
+_eps0   Permittivität des Vakuums
+_c0     Lichtgeschwindigkeit im Vakuum
+_e      Elementarladung
+
+_kB     Boltzmann-Konstante
+
+_h      Plank'sches Wirkungsquantum

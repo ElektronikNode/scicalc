@@ -1,0 +1,10 @@
+Wunschliste für scicalc:
+
+# undo/redo
+# Pfeiltaste links und rechts auf Zeile beschränken
+# Bei Return Taste am linken Zeilenende -> leere Zeile einfügen
+
+# highlighting der aktuellen (Cursor)Zeile
+# Einheiten: (zb. mit \ am Zeilenende kann die Einheit festgelegt werden.)
+
+# (mit altem Ergebnis durch Eingabe des nächsten Rechenzeichens weiterrechnen)

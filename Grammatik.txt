@@ -1,0 +1,28 @@
+Grammatik von scicalc:
+
+Beispiele:
+
+a=(-3+2*b+3*c)^(3*x)
+
+Rges=R1||R2		// Parallelschaltung von Widerständen
+
+Vorsicht: x^-3 ist in dieser Grammatik nicht erlaubt! stattdessen x^(-3) benutzen.
+
+
+// Zuweisung: weist Expr einer Variable ident zu
+Assign	= [ident "="] Expr.
+
+// Ausdruck besteht aus mit + oder - verknüpften Termen:
+Expr	= ["+"|"-"] Term {("+"|"-") Term}.
+
+// Ein Term besteht aus mehreren parallel geschalteten Zweigen
+Term	= Parallel {"||" Parallel}.
+
+// Term besteht aus mit * oder / verknüpften Faktoren:
+Parallel= Factor {("*"|"/") Factor}.
+
+// Jeder Faktor ist eine n-fache Potenz
+Factor	= Power {"^" Power}.
+
+// Die Exponenten jeder Stufe bestehen aus Variablen (oder Funktionen), Zahlen oder Klammerausdrücken.
+Power	= ident ["(" [Expr {"," Expr}] ")"] | number | "(" Expr ")".

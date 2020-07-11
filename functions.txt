@@ -1,0 +1,18 @@
+
+
+sqrt      Quadratwurzel
+exp       Exponentialfunktion (e^ )
+log       natürlicher Logarithmus
+ln        --||--
+log10     dekadischer Logarithmus
+sin       Sinusfunktion (mit Radiant)
+cos       Cosinusfunktion (mit Radiant)
+tan       Tangensfunktion (mit Radiant)
+asin      Arcussinusfunktion (ergibt Radiant)
+acos      Arcuscosinusfunktion (ergibt Radiant)
+atan      Arcustangensfunktion (ergibt Radiant)
+atan2     verbesserte Arcustangensfunktion (Gegenkathete, Ankathete)
+abs       Betragsfunktion
+rad2deg   Umrechnung von Radiant auf Grad
+
+
