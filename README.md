@@ -153,9 +153,9 @@ qmake
 
 
 # Lizenz
-Autor: Friedrich Feichtinger
-https://github.com/feichtinger
-https://github.com/organizations/ElektronikNode
+Autor: Friedrich Feichtinger  
+https://github.com/feichtinger  
+https://github.com/organizations/ElektronikNode  
 Datum: 12.3.2013
 
 **scicalc** ist open-source und wird unter der GNU GPL V2 veröffentlicht. Sie können dieses Programm kostenlos verwenden.
