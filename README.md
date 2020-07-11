@@ -3,6 +3,8 @@
 scicalc
 =======
 
+![sceenshot](screenshot.png)
+
 # Bedienungsanleitung
 ## 1. Einführung:
 **scicalc** ist ein numerisches Berechnungsprogramm für den PC. Meiner Erfahrung nach gibt es hauptsächlich 2 Arten von Rechenprogrammen:
@@ -138,6 +140,16 @@ _h      Plank'sches Wirkungsquantum
 ```
 
 
+# Kompilieren auf Debian und Derivate
+```
+sudo apt install build-essential qt5-default qt5-doc qt5-doc-html qtcreator git
+cd
+git clone https://github.com/ElektronikNode/scicalc
+mkdir build
+cd build
+qmake ../scicalc
+qmake
+```
 
 
 # Lizenz

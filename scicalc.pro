@@ -50,3 +50,6 @@ DISTFILES += \
     functions.txt \
     test.sc \
     wunschliste.txt
+
+RESOURCES += \
+    scicalc.qrc

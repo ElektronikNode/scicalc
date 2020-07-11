@@ -60,7 +60,7 @@
      <x>0</x>
      <y>0</y>
      <width>781</width>
-     <height>25</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -88,6 +88,8 @@
     <addaction name="actionReadme"/>
     <addaction name="actionConstants"/>
     <addaction name="actionFunctions"/>
+    <addaction name="separator"/>
+    <addaction name="actionChangelog"/>
     <addaction name="actionAbout_scicalc"/>
    </widget>
    <addaction name="menuFile"/>
@@ -173,6 +175,11 @@
   <action name="actionAbout_scicalc">
    <property name="text">
     <string>About scicalc</string>
+   </property>
+  </action>
+  <action name="actionChangelog">
+   <property name="text">
+    <string>Changelog</string>
    </property>
   </action>
  </widget>

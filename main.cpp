@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
 	QCoreApplication::setOrganizationName("scicalc");
-	//QCoreApplication::setOrganizationDomain("friedrich.feichtinger.com");
+    QCoreApplication::setOrganizationDomain("https://github.com/ElektronikNode/scicalc");
 	QCoreApplication::setApplicationName("scicalc");
 	scicalc w;
 	w.show();

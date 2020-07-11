@@ -16,7 +16,7 @@
 
 
 const QString scicalc::tempFile=QDir::homePath() + "/.temp.sc";
-const QString scicalc::version="0.91.1";
+const QString scicalc::version="0.91.2";
 
 scicalc* scicalc::myApp=0;
 
@@ -32,7 +32,7 @@ scicalc::scicalc(QMainWindow *parent) :
 	
 	QSettings set;
 
-	setWindowIcon(QIcon(QCoreApplication::applicationDirPath()+"/logo.svg"));
+    setWindowIcon(QIcon(":/logo.svg"));
 	dialogGeneralSettings=new DialogGeneralSettings(this);
 	
 	
@@ -330,7 +330,7 @@ void scicalc::setSaved(bool saved)
 {
 	this->saved=saved;
 	
-	QString windowtitle="scicalc";
+    QString windowtitle="scicalc " + version;
 	
 	if(!currentFile.isEmpty())
 	{
@@ -360,17 +360,22 @@ scicalc::~scicalc()
 
 void scicalc::on_actionReadme_triggered()
 {
-    showTextFile(QCoreApplication::applicationDirPath()+"/README.md");
+    showTextFile(":/doc/README.md");
 }
 
 void scicalc::on_actionConstants_triggered()
 {
-    showTextFile(QCoreApplication::applicationDirPath()+"/constants.txt");
+    showTextFile(":/doc/constants.txt");
 }
 
 void scicalc::on_actionFunctions_triggered()
 {
-    showTextFile(QCoreApplication::applicationDirPath()+"/functions.txt");
+    showTextFile(":/doc/functions.txt");
+}
+
+void scicalc::on_actionChangelog_triggered()
+{
+    showTextFile(":/doc/CHANGELOG.md");
 }
 
 
@@ -413,3 +418,4 @@ void scicalc::on_actionAbout_scicalc_triggered()
 {
     QMessageBox::about(this, "About scicalc", "by Friedrich Feichtinger\nVersion: "+version+"\nGPL v2");
 }
+
