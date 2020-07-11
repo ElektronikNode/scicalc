@@ -41,6 +41,8 @@ private slots:
 	
 	void on_actionAbout_scicalc_triggered();
 	
+    void on_actionChangelog_triggered();
+
 private:
 	void closeEvent(QCloseEvent *event);
 	void askForSave();

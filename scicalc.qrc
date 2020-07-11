@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/doc">
+        <file>CHANGELOG.md</file>
+        <file>constants.txt</file>
+        <file>functions.txt</file>
+        <file>README.md</file>
+    </qresource>
+    <qresource prefix="/">
+        <file>logo.svg</file>
+        <file>logo.png</file>
+    </qresource>
+</RCC>
