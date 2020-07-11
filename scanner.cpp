@@ -65,7 +65,7 @@ Token* Scanner::next()
 	}
 	else
 	{
-        switch(ch.toAscii())
+        switch(ch.toLatin1())
 		{
 			case '=':	nextCh(); t->kind=Token::assign;	break;
 			case '+':	nextCh(); t->kind=Token::plus;		break;
@@ -230,7 +230,7 @@ void Scanner::readNumber(Token *t)
 	}
 
 
-	switch(ch.toAscii())
+    switch(ch.toLatin1())
 	{
 		// scientific prefix
 		case 'a': value/=1000; // don't break!

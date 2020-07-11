@@ -43,6 +43,7 @@ FORMS    += \
     dialoggeneralsettings.ui
 
 DISTFILES += \
+    CHANGELOG.md \
     Grammatik.txt \
     README.md \
     constants.txt \

@@ -16,11 +16,11 @@ DialogGeneralSettings::DialogGeneralSettings(QWidget *parent) :
 	ui->spinBox_digits->setValue(set.value("digits", 6).toInt());
 	ui->checkBox_zeros->setChecked(set.value("trailingZeros", false).toBool());
 	
-	backcolor.setNamedColor(set.value("backcolor", "#000000").toString());
-	incolor.setNamedColor(set.value("incolor", "#00FF00").toString());
-	outcolor.setNamedColor(set.value("outcolor", "#FF0000").toString());
+    backcolor.setNamedColor(set.value("backcolor", "#cacb6e").toString());
+    incolor.setNamedColor(set.value("incolor", "#000000").toString());
+    outcolor.setNamedColor(set.value("outcolor", "#056b87").toString());
 	
-	font.fromString(set.value("font", "Courier 10 Pitch").toString());
+    font.fromString(set.value("font", "DejaVu Sans Mono,12,-1,5,75,0,0,0,0,0,Bold").toString());
 	
 	QPalette pal;
 	pal.setColor(QPalette::Window, backcolor);
@@ -49,11 +49,11 @@ void DialogGeneralSettings::on_buttonBox_accepted()
 	set.setValue("digits", getDigits());
 	set.setValue("trailingZeros", getTrailingZeros());
 			
-	set.setValue("backcolor", backcolor);
-	set.setValue("incolor", incolor);
-	set.setValue("outcolor", outcolor);
+    set.setValue("backcolor", backcolor.name());
+    set.setValue("incolor", incolor.name());
+    set.setValue("outcolor", outcolor.name());
 	
-	set.setValue("font", font);
+    set.setValue("font", font.toString());
 }
 
 int DialogGeneralSettings::getDigits()

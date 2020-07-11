@@ -9,12 +9,14 @@
 #include <QtGui>
 #include <QFile>
 #include <QFileInfo>
+#include <QMessageBox>
+#include <QFileDialog>
 
 #include <QSettings>
 
 
 const QString scicalc::tempFile=QDir::homePath() + "/.temp.sc";
-const QString scicalc::version="0.91";
+const QString scicalc::version="0.91.1";
 
 scicalc* scicalc::myApp=0;
 
@@ -358,7 +360,7 @@ scicalc::~scicalc()
 
 void scicalc::on_actionReadme_triggered()
 {
-	showTextFile(QCoreApplication::applicationDirPath()+"/README.txt");
+    showTextFile(QCoreApplication::applicationDirPath()+"/README.md");
 }
 
 void scicalc::on_actionConstants_triggered()
@@ -409,5 +411,5 @@ void scicalc::on_actionGeneral_settings_triggered()
 
 void scicalc::on_actionAbout_scicalc_triggered()
 {
-	QMessageBox::about(this, "About scicalc", "by Friedrich Feichtinger\nVersion: "+version+"\nGPL");
+    QMessageBox::about(this, "About scicalc", "by Friedrich Feichtinger\nVersion: "+version+"\nGPL v2");
 }

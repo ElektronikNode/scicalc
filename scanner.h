@@ -33,7 +33,7 @@ private:
 
 	static const QChar eof_CHAR;				// end of line
 
-	static QChar ch;						// last character
+    static QChar ch;						// last character
 	static QString in;						// input string
 	static int pos;							// current position in input string
 
