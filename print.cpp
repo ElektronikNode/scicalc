@@ -66,7 +66,7 @@ QString Print::sciPrint(double value)
 
 
 	// get number of digits of fractional part
-	fracDigits=digits-intDigits;
+	fracDigits=std::max(digits-intDigits, 0);
 
 	// get fractional part of value
 	fracValue=fabs(rndValue % (int64_t)pow10(fracDigits));
