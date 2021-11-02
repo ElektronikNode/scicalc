@@ -202,7 +202,7 @@ void Scanner::readNumber(Token *t)
 
 	long double value=0;
 
-	// digits before '.'
+    // digits before '.'/','
 	do
 	{
 		value*=10;
@@ -213,9 +213,9 @@ void Scanner::readNumber(Token *t)
 	while(isDecimal(ch));
 
 
-	if(ch=='.')
+    if(ch=='.' || ch==',') // support both decimal separators (American, European)
 	{
-		// digits after '.'
+        // digits after '.'/','
 		nextCh();
 
 		long double base=1;
