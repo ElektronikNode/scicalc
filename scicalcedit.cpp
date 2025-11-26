@@ -98,7 +98,11 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 		
 		case Qt::Key_Backspace:
 		{
-			if(cursor.atBlockStart())
+			if(cursor.hasSelection())
+			{
+				QTextEdit::keyPressEvent(e);
+			}
+			else if(cursor.atBlockStart())
 			{
 				if(blocks.at(currentBlock).input.isEmpty() && currentBlock>0)
 				{
@@ -118,7 +122,11 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 		
 		case Qt::Key_Delete:
 		{
-			if(cursor.atBlockEnd())
+			if(cursor.hasSelection())
+			{
+				QTextEdit::keyPressEvent(e);
+			}
+			else if(cursor.atBlockEnd())
 			{
 				if(blocks.at(currentBlock).input.isEmpty() && blocks.size()>1)
 				{
@@ -254,6 +262,21 @@ void ScicalcEdit::readTextFromDisplay()
 			}
 			block++;
 		}
+	}
+	
+	while(blocks.size()>block)
+	{
+		blocks.removeLast();
+	}
+	
+	if(blocks.isEmpty())
+	{
+		blocks.append(ScicalcBlock(QString()));
+	}
+	
+	if(currentBlock>=blocks.size())
+	{
+		currentBlock=blocks.size()-1;
 	}
 	
 	emit inputChanged();
@@ -396,7 +419,5 @@ void ScicalcEdit::printBlocks()
 		qDebug() << blocks.at(i).input;
 	}
 }
-
-
 
 
