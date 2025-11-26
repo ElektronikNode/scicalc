@@ -18,6 +18,7 @@ public:
 	
 	int getDigits();
 	bool getTrailingZeros();
+	bool getAccountingMode();
 	
 	QColor getBackColor();
 	QColor getInColor();

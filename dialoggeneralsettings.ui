@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>351</width>
-    <height>342</height>
+    <width>361</width>
+    <height>426</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -192,6 +192,25 @@
        <widget class="QToolButton" name="toolButton_output">
         <property name="text">
          <string>...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="title">
+      <string>Other</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QCheckBox" name="checkBox_accounting">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If new line starts with an operator (+ - * / ^), the previous result is used. &lt;/p&gt;&lt;p&gt;It is a convinience option, which eliminates the use of $ in many cases. &lt;/p&gt;&lt;p&gt;Example:&lt;/p&gt;&lt;p&gt;5+3&lt;/p&gt;&lt;p&gt;.........8&lt;/p&gt;&lt;p&gt;+12&lt;/p&gt;&lt;p&gt;........20&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Accounting Mode</string>
         </property>
        </widget>
       </item>

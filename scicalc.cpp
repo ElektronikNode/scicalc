@@ -109,14 +109,43 @@ void scicalc::inputChanged()
 void scicalc::on_actionRefresh_triggered()
 {
 	Variables::init();
+	bool accountingMode=dialogGeneralSettings->getAccountingMode();
+	bool previousResultAvailable=false;
 
 	for(int i=0; i<ui->edit_input->getBlockCount(); i++)
 	{
 		ScicalcBlock block=ui->edit_input->getBlock(i);
+		QString expression=block.input;
 
-		Scanner::init(block.input);
+		if(accountingMode && previousResultAvailable)
+		{
+			int firstCharIndex=0;
+			while(firstCharIndex<expression.size() && expression.at(firstCharIndex).isSpace())
+			{
+				firstCharIndex++;
+			}
+
+			if(firstCharIndex<expression.size())
+			{
+				QChar firstChar=expression.at(firstCharIndex);
+				bool isDivisionComment=(firstChar=='/' && firstCharIndex+1<expression.size() && expression.at(firstCharIndex+1)=='/');
+				if(!isDivisionComment &&
+					(firstChar=='+' || firstChar=='-' || firstChar=='*' || firstChar=='/' || firstChar=='^'))
+				{
+					expression.insert(firstCharIndex, QChar('$'));
+				}
+			}
+		}
+
+		Scanner::init(expression);
 		block.output=Parser::parse();
 		ui->edit_input->setBlock(i, block);
+
+		QString trimmedInput=block.input.trimmed();
+		bool isCommentLine=(trimmedInput.startsWith("//") || trimmedInput.startsWith("%"));
+		bool hasExpression=!trimmedInput.isEmpty() && !isCommentLine;
+		bool parseOk=!block.output.startsWith("ERROR");
+		previousResultAvailable=accountingMode && hasExpression && parseOk;
 	}
 	
 	ui->edit_input->refreshDisplay();
@@ -418,4 +447,3 @@ void scicalc::on_actionAbout_scicalc_triggered()
 {
     QMessageBox::about(this, "About scicalc", "by Friedrich Feichtinger\nVersion: "+version+"\nGPL v2");
 }
-

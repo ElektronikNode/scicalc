@@ -15,6 +15,7 @@ DialogGeneralSettings::DialogGeneralSettings(QWidget *parent) :
 	QSettings set;
 	ui->spinBox_digits->setValue(set.value("digits", 6).toInt());
 	ui->checkBox_zeros->setChecked(set.value("trailingZeros", false).toBool());
+	ui->checkBox_accounting->setChecked(set.value("accountingMode", false).toBool());
 	
     backcolor.setNamedColor(set.value("backcolor", "#cacb6e").toString());
     incolor.setNamedColor(set.value("incolor", "#000000").toString());
@@ -48,6 +49,7 @@ void DialogGeneralSettings::on_buttonBox_accepted()
 	QSettings set;
 	set.setValue("digits", getDigits());
 	set.setValue("trailingZeros", getTrailingZeros());
+	set.setValue("accountingMode", getAccountingMode());
 			
     set.setValue("backcolor", backcolor.name());
     set.setValue("incolor", incolor.name());
@@ -64,6 +66,11 @@ int DialogGeneralSettings::getDigits()
 bool DialogGeneralSettings::getTrailingZeros()
 {
 	return ui->checkBox_zeros->isChecked();
+}
+
+bool DialogGeneralSettings::getAccountingMode()
+{
+	return ui->checkBox_accounting->isChecked();
 }
 
 QColor DialogGeneralSettings::getBackColor()
