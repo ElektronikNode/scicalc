@@ -16,7 +16,7 @@
 
 
 const QString scicalc::tempFile=QDir::homePath() + "/.temp.sc";
-const QString scicalc::version="0.92.0-rc1";
+const QString scicalc::version="0.92.0-rc2";
 
 scicalc* scicalc::myApp=0;
 

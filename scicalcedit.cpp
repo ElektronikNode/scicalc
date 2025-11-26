@@ -240,7 +240,14 @@ void ScicalcEdit::cursorPositionChanged()
 void ScicalcEdit::clear()
 {
 	blocks.clear();
-	QTextEdit::clear();
+	currentBlock=0;
+	QTextCursor cursor=textCursor();
+	cursor.select(QTextCursor::Document);
+	if(cursor.hasSelection())
+	{
+		cursor.removeSelectedText();
+	}
+	setTextCursor(cursor);
 	history.clear();
 	future.clear();
 }
@@ -429,4 +436,3 @@ void ScicalcEdit::printBlocks()
 		qDebug() << blocks.at(i).input;
 	}
 }
-
