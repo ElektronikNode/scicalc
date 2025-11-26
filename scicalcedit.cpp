@@ -80,6 +80,9 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 		
 		case Qt::Key_Return: case Qt::Key_Enter:
 		{
+			QString currentInput = blocks.at(currentBlock).input;
+			int splitPos = cursor.positionInBlock();
+			
 			if(cursor.atBlockStart())
 			{
 				// cursor is at the start of line, insert new block above
@@ -88,10 +91,17 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 			}
 			else
 			{
-				// insert new block below
+				// split current block into two blocks
+				QString left=currentInput.left(splitPos);
+				QString right=currentInput.mid(splitPos);
+				blocks[currentBlock].input=left;
+				blocks[currentBlock].cursorPosition=left.length();
+				
 				currentBlock++;
-				blocks.insert(currentBlock, ScicalcBlock(QString()));
+				blocks.insert(currentBlock, ScicalcBlock(right));
+				blocks[currentBlock].cursorPosition=0;
 			}
+			refreshDisplay();
 			emit returnPressed();
 			break;
 		}
@@ -419,5 +429,4 @@ void ScicalcEdit::printBlocks()
 		qDebug() << blocks.at(i).input;
 	}
 }
-
 
