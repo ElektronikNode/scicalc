@@ -4,6 +4,8 @@
 #include <QTextEdit>
 #include "scicalcblock.h"
 
+class QMimeData;
+
 class ScicalcEdit : public QTextEdit
 {
 	Q_OBJECT
@@ -28,6 +30,7 @@ private slots:
 	
 private:
 	void keyPressEvent(QKeyEvent *e);
+	void insertFromMimeData(const QMimeData *source);
 	void undo();
 	void redo();
 	

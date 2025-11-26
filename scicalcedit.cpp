@@ -2,6 +2,7 @@
 #include <QKeyEvent>
 #include <QDebug>
 #include <QScrollBar>
+#include <QMimeData>
 
 ScicalcEdit::ScicalcEdit(QWidget *parent) :
 	QTextEdit(parent)
@@ -206,6 +207,18 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 			QTextEdit::keyPressEvent(e);
 			break;
 		}
+	}
+}
+
+void ScicalcEdit::insertFromMimeData(const QMimeData *source)
+{
+	if(source!=0 && source->hasText())
+	{
+		QTextEdit::insertPlainText(source->text());
+	}
+	else
+	{
+		QTextEdit::insertFromMimeData(source);
 	}
 }
 
