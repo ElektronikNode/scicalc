@@ -106,37 +106,58 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 			break;
 		}
 		
-		case Qt::Key_Backspace:
-		{
-			if(cursor.hasSelection())
+			case Qt::Key_Backspace:
 			{
-				QTextEdit::keyPressEvent(e);
-			}
-			else if(cursor.atBlockStart())
+				bool blockStructureChanged=false;
+				if(cursor.hasSelection())
+				{
+					QTextEdit::keyPressEvent(e);
+				}
+				else if(cursor.atBlockStart())
 			{
 				if(blocks.at(currentBlock).input.isEmpty() && currentBlock>0)
-				{
-					// at the start of empty block -> remove block
-					blocks.removeAt(currentBlock);
-					currentBlock--;
-					blocks[currentBlock].cursorPosition=blocks.at(currentBlock).input.length();
-					refreshDisplay();
+					{
+						// at the start of empty block -> remove block
+						blocks.removeAt(currentBlock);
+						currentBlock--;
+						blocks[currentBlock].cursorPosition=blocks.at(currentBlock).input.length();
+						refreshDisplay();
+						blockStructureChanged=true;
+					}
+					else if(currentBlock>0)
+					{
+						// merge with previous block
+						int prevIndex=currentBlock-1;
+					int prevLength=blocks.at(prevIndex).input.length();
+						blocks[prevIndex].input+=blocks.at(currentBlock).input;
+						blocks.removeAt(currentBlock);
+						currentBlock=prevIndex;
+						blocks[currentBlock].cursorPosition=prevLength;
+						refreshDisplay();
+						blockStructureChanged=true;
+					}
 				}
+				else
+				{
+					QTextEdit::keyPressEvent(e);
+				}
+				
+				if(blockStructureChanged)
+				{
+					emit inputChanged();
+					emit returnPressed();
+				}
+				break;
 			}
-			else
+			
+			case Qt::Key_Delete:
 			{
-				QTextEdit::keyPressEvent(e);
-			}
-			break;
-		}
-		
-		case Qt::Key_Delete:
-		{
-			if(cursor.hasSelection())
-			{
-				QTextEdit::keyPressEvent(e);
-			}
-			else if(cursor.atBlockEnd())
+				bool blockStructureChanged=false;
+				if(cursor.hasSelection())
+				{
+					QTextEdit::keyPressEvent(e);
+				}
+				else if(cursor.atBlockEnd())
 			{
 				if(blocks.at(currentBlock).input.isEmpty() && blocks.size()>1)
 				{
@@ -148,19 +169,36 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 						blocks[currentBlock].cursorPosition=blocks.at(currentBlock).input.length();
 					}
 					else
-					{
-						// currentBlock=currentBlock;
-						blocks[currentBlock].cursorPosition=0;
+						{
+							// currentBlock=currentBlock;
+							blocks[currentBlock].cursorPosition=0;
+						}
+						refreshDisplay();
+						blockStructureChanged=true;
 					}
-					refreshDisplay();
+					else if(currentBlock<blocks.size()-1)
+					{
+						// merge with next block
+						int currentLength=blocks.at(currentBlock).input.length();
+						blocks[currentBlock].input+=blocks.at(currentBlock+1).input;
+						blocks.removeAt(currentBlock+1);
+						blocks[currentBlock].cursorPosition=currentLength;
+						refreshDisplay();
+						blockStructureChanged=true;
+					}
 				}
+				else
+				{
+					QTextEdit::keyPressEvent(e);
+				}
+				
+				if(blockStructureChanged)
+				{
+					emit inputChanged();
+					emit returnPressed();
+				}
+				break;
 			}
-			else
-			{
-				QTextEdit::keyPressEvent(e);
-			}
-			break;
-		}
 		
 		
 		default:
