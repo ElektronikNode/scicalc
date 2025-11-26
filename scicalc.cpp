@@ -16,7 +16,7 @@
 
 
 const QString scicalc::tempFile=QDir::homePath() + "/.temp.sc";
-const QString scicalc::version="1.0.0";
+const QString scicalc::version="1.0.1";
 
 scicalc* scicalc::myApp=0;
 
@@ -158,7 +158,10 @@ void scicalc::on_actionRefresh_triggered()
 		bool isCommentLine=(trimmedInput.startsWith("//") || trimmedInput.startsWith("%"));
 		bool hasExpression=!trimmedInput.isEmpty() && !isCommentLine;
 		bool parseOk=!block.output.startsWith("ERROR");
-		previousResultAvailable=accountingMode && hasExpression && parseOk;
+		if(hasExpression)
+		{
+			previousResultAvailable=accountingMode && parseOk;
+		}
 	}
 	
 	ui->edit_input->refreshDisplay();

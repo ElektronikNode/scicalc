@@ -104,7 +104,7 @@ F=3 #N
 
 
 ## 12. Accounting-Modus
-Im Einstellungsdialog (General Settings) kann ein Accounting-Modus aktiviert werden. Beginnt eine Zeile im Editor mit `+`, `-`, `*`, `/` oder `^`, wird in diesem Modus automatisch das Ergebnis der vorigen Zeile vorangestellt. Auf diese Weise lassen sich lange Berechnungsketten komfortabel erstellen, ohne bereits geschriebene Ergebnisse kopieren zu müssen. Leere Zeilen sowie Kommentarzeilen unterbrechen die Verkettung.
+Im Einstellungsdialog (General Settings) kann ein Accounting-Modus aktiviert werden. Beginnt eine Zeile im Editor mit `+`, `-`, `*`, `/` oder `^`, wird in diesem Modus automatisch das Ergebnis der vorigen berechneten Zeile vorangestellt. Auf diese Weise lassen sich lange Berechnungsketten komfortabel erstellen, ohne bereits geschriebene Ergebnisse kopieren zu müssen. Leere Zeilen sowie Kommentarzeilen werden dabei übersprungen.
 
 
 ## 13. Temporäre Skripteinstellungen

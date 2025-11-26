@@ -1,6 +1,10 @@
 scicalc changelog
 =================
 
+# V1.0.1
+* Accounting-Modus überspringt nun Leer- und Kommentarzeilen und verknüpft konsequent mit dem nächsten gültigen Ergebnis
+* Diverse kleinere Stabilitäts- und Dokumentationsverbesserungen
+
 # V1.0.0
 * Added Accounting-Modus Option inkl. Operator-Verkettung beim Editieren
 * Neue Skriptfunktionen `setDigits(n)`, `setTrailingZeros(b)` und 
