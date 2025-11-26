@@ -16,3 +16,7 @@ abs       Betragsfunktion
 rad2deg   Umrechnung von Radiant auf Grad
 
 
+setDigits         legt temporär die Anzahl signifikanter Stellen (1..15) fest
+setTrailingZeros  schaltet abschließende Nullen in der Ausgabe ein (1) oder aus (0)
+setAccounting     aktiviert (1) bzw. deaktiviert (0) den Accounting-Modus
+

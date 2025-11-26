@@ -103,6 +103,22 @@ F=3 #N
 * **scicalc** ist ein numerischer Rechner, es kann nicht mit symbolischen Ausdrücken rechnen, sofern diesen noch kein Wert zugewiesen wurde.
 
 
+## 12. Accounting-Modus
+Im Einstellungsdialog (General Settings) kann ein Accounting-Modus aktiviert werden. Beginnt eine Zeile im Editor mit `+`, `-`, `*`, `/` oder `^`, wird in diesem Modus automatisch das Ergebnis der vorigen Zeile vorangestellt. Auf diese Weise lassen sich lange Berechnungsketten komfortabel erstellen, ohne bereits geschriebene Ergebnisse kopieren zu müssen. Leere Zeilen sowie Kommentarzeilen unterbrechen die Verkettung.
+
+
+## 13. Temporäre Skripteinstellungen
+Für portierbare Skripte können wichtige Anzeigeoptionen direkt im Dokument gesetzt werden. Dafür stehen spezielle Funktionen zur Verfügung, die je Skriptausführung genau einmal aufgerufen werden dürfen:
+
+```
+setDigits(n)         Anzahl signifikanter Stellen temporär festlegen (1 ≤ n ≤ 15)
+setTrailingZeros(b)  Ausgabe mit (b=1) bzw. ohne (b=0) abschließende Nullen erzwingen
+setAccounting(b)     Accounting-Modus per Skript aktivieren (b=1) oder deaktivieren (b=0)
+```
+
+Die Änderungen wirken nur bis zur nächsten Aktualisierung (Refresh) und werden nicht dauerhaft gespeichert. Wird eine Funktion mehrfach aufgerufen oder ein ungültiger Wert übergeben, meldet **scicalc** den Fehler direkt in der Ausgabe.
+
+
 # Funktionen in scicalc
 
 ```
@@ -120,6 +136,11 @@ atan      Arcustangensfunktion (ergibt Radiant)
 atan2     verbesserte Arcustangensfunktion (Gegenkathete, Ankathete)
 abs       Betragsfunktion
 rad2deg   Umrechnung von Radiant auf Grad
+
+
+setDigits         Steuerung der Ausgabepräzision (siehe Abschnitt 13)
+setTrailingZeros  Ein-/Ausschalten der Ausgabe mit führenden Nullen (siehe Abschnitt 13)
+setAccounting     Accounting-Modus per Skript aktivieren (siehe Abschnitt 13)
 ```
 
 # Konstanten in scicalc
