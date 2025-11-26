@@ -24,6 +24,13 @@ public:
 	
 	DialogGeneralSettings* dialogGeneralSettings;
 	
+		int getDigitsSetting() const;
+		bool getTrailingZerosSetting() const;
+		bool getAccountingModeSetting() const;
+		bool setTemporaryDigits(int digits);
+		bool setTemporaryTrailingZeros(bool enabled);
+		bool setTemporaryAccounting(bool enabled);
+	
 private slots:	
 	void on_actionNew_triggered();
 	void on_actionOpen_triggered();
@@ -53,6 +60,13 @@ private:
 	
 	bool saved; // this flag is true, if the content of the editor is saved to file.
 		// it changes to false, if any character of the editor is changed.
+	
+	int temporaryDigits;
+	bool temporaryDigitsActive;
+	bool temporaryTrailingZeros;
+	bool temporaryTrailingZerosActive;
+	bool temporaryAccounting;
+	bool temporaryAccountingActive;
 	
 	QString currentFile; // holds the filename including the path to the current file.
 		// it is empty in temporary-mode

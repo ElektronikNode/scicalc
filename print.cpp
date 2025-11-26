@@ -15,8 +15,8 @@
 QString Print::sciPrint(double value)
 {
 
-	int digits=scicalc::app()->dialogGeneralSettings->getDigits();
-	bool showZeros=scicalc::app()->dialogGeneralSettings->getTrailingZeros();
+	int digits=scicalc::app()->getDigitsSetting();
+	bool showZeros=scicalc::app()->getTrailingZerosSetting();
 	QString output;
 
 

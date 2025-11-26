@@ -16,7 +16,7 @@
 
 
 const QString scicalc::tempFile=QDir::homePath() + "/.temp.sc";
-const QString scicalc::version="0.92.0-rc2";
+const QString scicalc::version="1.0.0-rc3";
 
 scicalc* scicalc::myApp=0;
 
@@ -35,6 +35,12 @@ scicalc::scicalc(QMainWindow *parent) :
     setWindowIcon(QIcon(":/logo.svg"));
 	dialogGeneralSettings=new DialogGeneralSettings(this);
 	
+	temporaryDigitsActive=false;
+	temporaryTrailingZerosActive=false;
+	temporaryAccountingActive=false;
+	temporaryDigits=dialogGeneralSettings->getDigits();
+	temporaryTrailingZeros=dialogGeneralSettings->getTrailingZeros();
+	temporaryAccounting=dialogGeneralSettings->getAccountingMode();
 	
 	ui->horizontalLayout->setStretch(0, 1);
 	ui->horizontalLayout->setStretch(1, 0);
@@ -108,8 +114,15 @@ void scicalc::inputChanged()
 // for convinience the whole file will be updated.
 void scicalc::on_actionRefresh_triggered()
 {
+	temporaryDigitsActive=false;
+	temporaryTrailingZerosActive=false;
+	temporaryAccountingActive=false;
+	temporaryDigits=dialogGeneralSettings->getDigits();
+	temporaryTrailingZeros=dialogGeneralSettings->getTrailingZeros();
+	temporaryAccounting=dialogGeneralSettings->getAccountingMode();
+	
 	Variables::init();
-	bool accountingMode=dialogGeneralSettings->getAccountingMode();
+	bool accountingMode=getAccountingModeSetting();
 	bool previousResultAvailable=false;
 
 	for(int i=0; i<ui->edit_input->getBlockCount(); i++)
@@ -373,6 +386,67 @@ void scicalc::setSaved(bool saved)
 	}
 	
 	setWindowTitle(windowtitle);
+}
+
+
+int scicalc::getDigitsSetting() const
+{
+	if(temporaryDigitsActive)
+	{
+		return temporaryDigits;
+	}
+	return dialogGeneralSettings->getDigits();
+}
+
+bool scicalc::getTrailingZerosSetting() const
+{
+	if(temporaryTrailingZerosActive)
+	{
+		return temporaryTrailingZeros;
+	}
+	return dialogGeneralSettings->getTrailingZeros();
+}
+
+bool scicalc::getAccountingModeSetting() const
+{
+	if(temporaryAccountingActive)
+	{
+		return temporaryAccounting;
+	}
+	return dialogGeneralSettings->getAccountingMode();
+}
+
+bool scicalc::setTemporaryDigits(int digits)
+{
+	if(temporaryDigitsActive)
+	{
+		return false;
+	}
+	temporaryDigits=digits;
+	temporaryDigitsActive=true;
+	return true;
+}
+
+bool scicalc::setTemporaryTrailingZeros(bool enabled)
+{
+	if(temporaryTrailingZerosActive)
+	{
+		return false;
+	}
+	temporaryTrailingZeros=enabled;
+	temporaryTrailingZerosActive=true;
+	return true;
+}
+
+bool scicalc::setTemporaryAccounting(bool enabled)
+{
+	if(temporaryAccountingActive)
+	{
+		return false;
+	}
+	temporaryAccounting=enabled;
+	temporaryAccountingActive=true;
+	return true;
 }
 
 

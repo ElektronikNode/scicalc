@@ -11,6 +11,7 @@
 #include "variables.h"
 #include "parseException.h"
 #include "print.h"
+#include "scicalc.h"
 
 #include <cmath>
 #include <QList>
@@ -264,6 +265,55 @@ long double Parser::Function()
 	else if(fun=="atan2"){	n=2;	value=atan2(args.value(0), args.value(1));}
 	else if(fun=="abs"){	n=1;	value=fabs(args.value(0));}
 	else if(fun=="rad2deg"){n=1;	value=args.value(0)*180/M_PI;}
+	else if(fun=="setDigits")
+	{
+		n=1;
+		long double arg=args.value(0);
+		int digits=static_cast<int>(arg);
+		if(arg!=digits)
+		{
+			throw ParseException("setDigits expects an integer argument");
+		}
+		if(digits<1 || digits>15)
+		{
+			throw ParseException("setDigits expects values between 1 and 15");
+		}
+		if(!scicalc::app()->setTemporaryDigits(digits))
+		{
+			throw ParseException("setDigits can only be called once per script");
+		}
+		value=digits;
+	}
+	else if(fun=="setTrailingZeros")
+	{
+		n=1;
+		long double arg=args.value(0);
+		int flag=static_cast<int>(arg);
+		if(arg!=flag || (flag!=0 && flag!=1))
+		{
+			throw ParseException("setTrailingZeros expects 0 or 1");
+		}
+		if(!scicalc::app()->setTemporaryTrailingZeros(flag==1))
+		{
+			throw ParseException("setTrailingZeros can only be called once per script");
+		}
+		value=flag;
+	}
+	else if(fun=="setAccounting")
+	{
+		n=1;
+		long double arg=args.value(0);
+		int flag=static_cast<int>(arg);
+		if(arg!=flag || (flag!=0 && flag!=1))
+		{
+			throw ParseException("setAccounting expects 0 or 1");
+		}
+		if(!scicalc::app()->setTemporaryAccounting(flag==1))
+		{
+			throw ParseException("setAccounting can only be called once per script");
+		}
+		value=flag;
+	}
 	else
 	{
 		throw ParseException("unknown function '"+fun+"'");
