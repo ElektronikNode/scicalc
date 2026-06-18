@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=scicalc
+Comment=Scientific calculator
+Exec=scicalc
+Icon=scicalc
+Terminal=false
+Categories=Qt;Science;Calculator;Utility;
+StartupNotify=true

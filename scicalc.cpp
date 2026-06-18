@@ -16,7 +16,7 @@
 
 
 const QString scicalc::tempFile=QDir::homePath() + "/.temp.sc";
-const QString scicalc::version="1.0.1";
+const QString scicalc::version="1.1.0";
 
 scicalc* scicalc::myApp=0;
 
@@ -41,6 +41,7 @@ scicalc::scicalc(QMainWindow *parent) :
 	temporaryDigits=dialogGeneralSettings->getDigits();
 	temporaryTrailingZeros=dialogGeneralSettings->getTrailingZeros();
 	temporaryAccounting=dialogGeneralSettings->getAccountingMode();
+	Variables::init();
 	
 	ui->horizontalLayout->setStretch(0, 1);
 	ui->horizontalLayout->setStretch(1, 0);

@@ -22,6 +22,7 @@ Token* Parser::t=0;					// current token
 Token* Parser::la=0;				// look-ahead token
 
 Token::Kind Parser::sym=Token::none;			// kind of look-ahead-token
+QString Parser::assignedVariable;
 
 
 QString Parser::parse()
@@ -29,6 +30,7 @@ QString Parser::parse()
 	//qDebug("start parsing");
 	long double value;
 	QString output;
+	assignedVariable.clear();
 
 	scan();
 
@@ -53,6 +55,10 @@ QString Parser::parse()
 				if(sym==Token::unit)
 				{
 					check(Token::unit);
+					if(!assignedVariable.isEmpty())
+					{
+						Variables::set(assignedVariable, value, t->string);
+					}
 				}
 			}
 			else
@@ -64,6 +70,10 @@ QString Parser::parse()
 				{
 					check(Token::unit);
 					output+=t->string;
+					if(!assignedVariable.isEmpty())
+					{
+						Variables::set(assignedVariable, value, t->string);
+					}
 				}
 			}
 			check(Token::eof);
@@ -74,6 +84,28 @@ QString Parser::parse()
 		output=QString("ERROR: " + e.text());
 	}
 	return output;
+}
+
+QStringList Parser::functionNames()
+{
+	return QStringList()
+		<< "sqrt"
+		<< "exp"
+		<< "log"
+		<< "ln"
+		<< "log10"
+		<< "sin"
+		<< "cos"
+		<< "tan"
+		<< "asin"
+		<< "acos"
+		<< "atan"
+		<< "atan2"
+		<< "abs"
+		<< "rad2deg"
+		<< "setDigits"
+		<< "setTrailingZeros"
+		<< "setAccounting";
 }
 
 
@@ -212,6 +244,7 @@ long double Parser::Assignment()
 		if(var!="$")
 		{
 			Variables::set(var, value);
+			assignedVariable=var;
 		}
 	}
 	else

@@ -2,3 +2,6 @@
 .qmake.stash
 
 scicalc.pro.user
+build/
+debian/*.deb
+debian/_CPack_Packages/

@@ -1,25 +1,71 @@
 #include "scicalcedit.h"
+#include "variables.h"
+#include "print.h"
+#include "variable.h"
+#include "parser.h"
+#include <QCompleter>
 #include <QKeyEvent>
 #include <QDebug>
 #include <QScrollBar>
 #include <QMimeData>
+#include <QStandardItemModel>
+#include <QStandardItem>
+#include <QAbstractItemView>
+#include <QTextBlock>
 
 ScicalcEdit::ScicalcEdit(QWidget *parent) :
-	QTextEdit(parent)
+	QTextEdit(parent),
+	currentBlock(0),
+	currentLineIsInput(true),
+	completer(new QCompleter(this)),
+	completionModel(new QStandardItemModel(this))
 {
 	connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(cursorPositionChanged()));
 	connect(this, SIGNAL(textChanged()), this, SLOT(readTextFromDisplay()));
+
+	completer->setWidget(this);
+	completer->setModel(completionModel);
+	completer->setCompletionRole(Qt::UserRole);
+	completer->setCompletionMode(QCompleter::PopupCompletion);
+	completer->setCaseSensitivity(Qt::CaseSensitive);
+	completer->setWrapAround(false);
+	connect(completer, SIGNAL(activated(QString)), this, SLOT(insertCompletion(QString)));
 }
 
 
 void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 {
 	QTextCursor cursor=textCursor();
+
+	if(completer->popup()->isVisible())
+	{
+		switch(e->key())
+		{
+			case Qt::Key_Enter:
+			case Qt::Key_Return:
+			case Qt::Key_Escape:
+			case Qt::Key_Tab:
+			case Qt::Key_Backtab:
+			{
+				e->ignore();
+				return;
+			}
+			default:
+				break;
+		}
+	}
+
+	if(e->key()==Qt::Key_Space && e->modifiers()==Qt::ControlModifier)
+	{
+		showVariableCompletions(true);
+		return;
+	}
 	
 	switch(e->key())
 	{
 		case Qt::Key_Down:
 		{
+			completer->popup()->hide();
 			if(currentBlock<blocks.size()-1)
 			{
 				currentBlock++;
@@ -30,6 +76,7 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 			
 		case Qt::Key_Up:
 		{
+			completer->popup()->hide();
 			if(currentBlock>0)
 			{
 				currentBlock--;
@@ -40,6 +87,7 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 			
 		case Qt::Key_Right:
 		{
+			completer->popup()->hide();
 			if(cursor.atBlockEnd())
 			{
 				// cursor is at end of line, jump to next block
@@ -60,6 +108,7 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 		
 		case Qt::Key_Left:
 		{
+			completer->popup()->hide();
 			if(cursor.atBlockStart())
 			{
 				// cursor is at end of line, jump to next block
@@ -81,6 +130,7 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 		
 		case Qt::Key_Return: case Qt::Key_Enter:
 		{
+			completer->popup()->hide();
 			QString currentInput = blocks.at(currentBlock).input;
 			int splitPos = cursor.positionInBlock();
 			
@@ -148,6 +198,7 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 					emit inputChanged();
 					emit returnPressed();
 				}
+				showVariableCompletions(false);
 				break;
 			}
 			
@@ -198,6 +249,7 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 					emit inputChanged();
 					emit returnPressed();
 				}
+				showVariableCompletions(false);
 				break;
 			}
 		
@@ -205,6 +257,7 @@ void ScicalcEdit::keyPressEvent(QKeyEvent *e)
 		default:
 		{
 			QTextEdit::keyPressEvent(e);
+			showVariableCompletions(false);
 			break;
 		}
 	}
@@ -220,6 +273,138 @@ void ScicalcEdit::insertFromMimeData(const QMimeData *source)
 	{
 		QTextEdit::insertFromMimeData(source);
 	}
+}
+
+void ScicalcEdit::insertCompletion(QString completion)
+{
+	if(completion.isEmpty())
+	{
+		completion=completer->currentIndex().data(Qt::UserRole).toString();
+	}
+
+	if(completion.isEmpty())
+	{
+		return;
+	}
+
+	QTextCursor cursor=textCursor();
+	QString prefix=completionPrefix();
+	for(int i=0; i<prefix.length(); i++)
+	{
+		cursor.deletePreviousChar();
+	}
+	cursor.insertText(completion);
+	setTextCursor(cursor);
+	completer->popup()->hide();
+}
+
+void ScicalcEdit::showVariableCompletions(bool manual)
+{
+	if(!currentLineIsInput)
+	{
+		completer->popup()->hide();
+		return;
+	}
+
+	QString prefix=completionPrefix();
+	if(prefix.isEmpty() && !manual)
+	{
+		completer->popup()->hide();
+		return;
+	}
+
+	updateCompletionModel();
+	if(completionModel->rowCount()==0)
+	{
+		completer->popup()->hide();
+		return;
+	}
+
+	completer->setCompletionPrefix(prefix);
+	if(completer->completionCount()==0)
+	{
+		completer->popup()->hide();
+		return;
+	}
+
+	QRect popupRect=cursorRect();
+	int width=completer->popup()->sizeHintForColumn(0)
+		+ completer->popup()->verticalScrollBar()->sizeHint().width();
+	popupRect.setWidth(qMax(width, 220));
+	completer->complete(popupRect);
+}
+
+void ScicalcEdit::updateCompletionModel()
+{
+	completionModel->clear();
+
+	QList<Variable*> variables=Variables::all();
+	for(int i=0; i<variables.size(); i++)
+	{
+		Variable *var=variables.at(i);
+		if(var==0 || var->name.isEmpty())
+		{
+			continue;
+		}
+
+		QString value=Print::sciPrint(var->value) + var->unit;
+		QString label=var->name + "    " + value;
+		QStandardItem *item=new QStandardItem(label);
+		item->setData(var->name, Qt::UserRole);
+		completionModel->appendRow(item);
+	}
+
+	QStringList functions=Parser::functionNames();
+	for(int i=0; i<functions.size(); i++)
+	{
+		QString name=functions.at(i);
+		QString label=name + "()    Funktion";
+		QStandardItem *item=new QStandardItem(label);
+		item->setData(name + "(", Qt::UserRole);
+		completionModel->appendRow(item);
+	}
+
+	completionModel->sort(0);
+}
+
+QString ScicalcEdit::completionPrefix() const
+{
+	if(!currentLineIsInput)
+	{
+		return QString();
+	}
+
+	QString line=textCursor().block().text();
+	if(line.startsWith("\t"))
+	{
+		return QString();
+	}
+
+	int position=textCursor().positionInBlock();
+	int start=position;
+	while(start>0 && isIdentifierCharacter(line.at(start-1)))
+	{
+		start--;
+	}
+
+	QString prefix=line.mid(start, position-start);
+	if(prefix.isEmpty())
+	{
+		return QString();
+	}
+
+	QChar first=prefix.at(0);
+	if(!(first.isLetter() || first=='_' || first=='$'))
+	{
+		return QString();
+	}
+
+	return prefix;
+}
+
+bool ScicalcEdit::isIdentifierCharacter(QChar ch) const
+{
+	return ch.isLetterOrNumber() || ch=='_' || ch=='$';
 }
 
 
@@ -261,6 +446,7 @@ void ScicalcEdit::cursorPositionChanged()
 	}
 	
 	//qDebug() << "inputLine" << inputLine;
+	currentLineIsInput=inputLine;
 	
 	if(block==currentBlock && inputLine && currentBlock<blocks.size())
 	{
@@ -290,8 +476,10 @@ void ScicalcEdit::cursorPositionChanged()
 
 void ScicalcEdit::clear()
 {
+	completer->popup()->hide();
 	blocks.clear();
 	currentBlock=0;
+	currentLineIsInput=true;
 	QTextCursor cursor=textCursor();
 	cursor.select(QTextCursor::Document);
 	if(cursor.hasSelection())

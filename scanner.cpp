@@ -192,6 +192,11 @@ void Scanner::readUnit(Token *t)
 	}
 	while(!ch.isSpace());
 
+	if(t->string=="Ohm")
+	{
+		t->string=QChar(0x03A9);
+	}
+
 	t->kind=Token::unit;
 }
 

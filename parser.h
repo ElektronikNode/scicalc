@@ -10,6 +10,7 @@
  */
 
 #include "token.h"
+#include <QStringList>
 
 
 class Parser
@@ -23,8 +24,11 @@ public:
 	static Token::Kind sym;			// kind of look-ahead-token
 	
 	static QString parse();
+	static QStringList functionNames();
 	
 private:
+
+	static QString assignedVariable;
 
 	static long double Power();
 	static long double Factor();

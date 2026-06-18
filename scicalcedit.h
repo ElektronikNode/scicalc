@@ -5,6 +5,8 @@
 #include "scicalcblock.h"
 
 class QMimeData;
+class QCompleter;
+class QStandardItemModel;
 
 class ScicalcEdit : public QTextEdit
 {
@@ -27,6 +29,7 @@ public slots:
 private slots:
 	void cursorPositionChanged();
 	void readTextFromDisplay();
+	void insertCompletion(QString completion);
 	
 private:
 	void keyPressEvent(QKeyEvent *e);
@@ -35,9 +38,16 @@ private:
 	void redo();
 	
 	void setCursorToBlock(int blockIndex);
+	void showVariableCompletions(bool manual);
+	void updateCompletionModel();
+	QString completionPrefix() const;
+	bool isIdentifierCharacter(QChar ch) const;
 	
 	QList<ScicalcBlock> blocks;
 	int currentBlock;
+	bool currentLineIsInput;
+	QCompleter *completer;
+	QStandardItemModel *completionModel;
 	
 	QList <QList<ScicalcBlock> > history;
 	QList <QList<ScicalcBlock> > future;

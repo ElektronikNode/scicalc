@@ -42,7 +42,7 @@ void Variables::init()
 }
 
 
-void Variables::set(QString name, long double value)
+void Variables::set(QString name, long double value, QString unit)
 {
 	//qDebug() << "setVariable" << name;
 	// search the list for this name
@@ -52,13 +52,14 @@ void Variables::set(QString name, long double value)
 	if(var==0)
 	{
 		// no: let's make a new variable
-		var=new Variable(name, value);
+		var=new Variable(name, value, unit);
 		variables.append(var);
 	}
 	else
 	{
 		// yes: let's change it's value
 		var->value=value;
+		var->unit=unit;
 	}
 }
 
@@ -74,6 +75,11 @@ long double Variables::get(QString name)
 	{
 		return var->value;
 	}
+}
+
+QList<Variable*> Variables::all()
+{
+	return variables;
 }
 
 
