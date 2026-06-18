@@ -81,6 +81,7 @@ private:
 	void applyEditorSettings(ScicalcEdit *edit);
 	bool loadFileIntoEditor(ScicalcEdit *edit, QString fileName);
 	bool saveEditorToFile(ScicalcEdit *edit, QString fileName);
+	bool saveEditorAs(ScicalcEdit *edit);
 	void saveSession();
 	bool restoreSession();
 	

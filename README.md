@@ -22,9 +22,12 @@ Im Textfeld koennen Rechenanweisungen eingegeben werden. Um die Berechnung zu
 aktualisieren, beenden Sie die aktuelle Zeile mit Return oder druecken Sie
 Strg+R.
 
-Mit Strg+T oder dem `+` neben der Tab-Leiste wird ein neuer Tab erstellt. Tabs
-koennen verschoben und ueber das Kreuz oder per Mittelklick geschlossen werden.
-Ein Doppelklick rechts neben dem letzten Tab erstellt ebenfalls einen neuen Tab.
+Mit Strg+T, Strg+N oder dem `+` neben der Tab-Leiste wird ein neuer Tab
+erstellt. Tabs koennen verschoben und ueber das Kreuz oder per Mittelklick
+geschlossen werden. Ein Doppelklick rechts neben dem letzten Tab erstellt
+ebenfalls einen neuen Tab. Wird ein geaenderter, noch nicht gespeicherter Tab
+geschlossen, fragt scicalc nach Speichern, Schliessen ohne Speichern oder
+Abbrechen. Vollstaendig leere Tabs werden ohne Rueckfrage geschlossen.
 Ungespeicherte Tabs werden beim Beenden in der Session abgelegt und beim
 naechsten Start wiederhergestellt.
 

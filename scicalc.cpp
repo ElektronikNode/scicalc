@@ -66,6 +66,7 @@ scicalc::scicalc(QMainWindow *parent) :
 	connect(ui->tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTabRequested(int)));
 	connect(addTabButton, SIGNAL(clicked()), this, SLOT(on_actionNew_triggered()));
 	connect(dialogGeneralSettings, SIGNAL(accepted()), this, SLOT(settingsChanged()));
+	ui->actionNew->setShortcuts(QList<QKeySequence>() << QKeySequence(Qt::CTRL + Qt::Key_T) << QKeySequence(Qt::CTRL + Qt::Key_N));
 	
 	// load settings-checkbox states:
 	ui->actionLoad_recent_file_on_startup->setChecked(set.value("autoload", false).toBool());
@@ -268,7 +269,7 @@ void scicalc::on_actionSave_triggered()
 	if(fileName.isEmpty())
 	{
 		// choose a filename first
-		on_actionSave_as_triggered();
+		saveEditorAs(edit);
 	}
 	else
 	{
@@ -280,12 +281,15 @@ void scicalc::on_actionSave_triggered()
 // slot for action from menu and the shortcut CTRL+Shift+S
 void scicalc::on_actionSave_as_triggered()
 {
-	ScicalcEdit *edit=currentEdit();
+	saveEditorAs(currentEdit());
+}
+
+bool scicalc::saveEditorAs(ScicalcEdit *edit)
+{
 	if(edit==0)
 	{
-		return;
+		return false;
 	}
-
 	// only choose the filename
 	QString defaultName=currentPath + "/" + tabDefaultFileName(edit);
 	QString fileName=QFileDialog::getSaveFileName(this,
@@ -301,8 +305,9 @@ void scicalc::on_actionSave_as_triggered()
 			fileName.append(".sc");
 		}
 		
-		saveEditorToFile(edit, fileName);
+		return saveEditorToFile(edit, fileName);
 	}
+	return false;
 }
 
 
@@ -430,27 +435,33 @@ void scicalc::closeEvent(QCloseEvent* event)
 bool scicalc::askForSave(ScicalcEdit *edit)
 {
 	//qDebug() << "ask for save";
-	if(edit==0 || isSaved(edit) || tabFileName(edit).isEmpty())
+	if(edit==0 || isSaved(edit) || isEditorEmpty(edit))
 	{
 		return true;
 	}
 
-	if(ui->actionAuto_save_on_close->isChecked())
+	QString fileName=tabFileName(edit);
+	if(ui->actionAuto_save_on_close->isChecked() && !fileName.isEmpty())
 	{
-		return saveEditorToFile(edit, tabFileName(edit));
+		return saveEditorToFile(edit, fileName);
 	}
 
 	QMessageBox msgBox;
-	msgBox.setText("Do you want to save changes?");
-	msgBox.setInformativeText(tabFileName(edit));
+	msgBox.setWindowTitle(tr("Close tab"));
+	msgBox.setText(tr("The tab has unsaved changes."));
+	msgBox.setInformativeText(fileName.isEmpty() ? tabDefaultFileName(edit) : fileName);
 	msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
 	msgBox.setDefaultButton(QMessageBox::Save);
-	msgBox.button(QMessageBox::Discard)->setText("Don't save");
+	msgBox.button(QMessageBox::Discard)->setText(tr("Close without saving"));
 	int ret=msgBox.exec();
 
 	if(ret==QMessageBox::Save)
 	{
-		return saveEditorToFile(edit, tabFileName(edit));
+		if(fileName.isEmpty())
+		{
+			return saveEditorAs(edit);
+		}
+		return saveEditorToFile(edit, fileName);
 	}
 	if(ret==QMessageBox::Cancel)
 	{
