@@ -1,6 +1,12 @@
 scicalc changelog
 =================
 
+# V2.0.1
+* Version auf `2.0.1` angehoben
+* Neue Funktion `round`
+* Mathematische Funktionen arbeiten nun elementweise auf Vektoren und Matrizen
+* `atan2(y,x)` unterstuetzt elementweise Auswertung und Skalar-Broadcast
+
 # V2.0.0
 * Erste Matlab-aehnliche Syntax fuer Vektoren und Matrizen
 * Matrixliterale mit Leerzeichen, Komma und Semikolon, z.B. `[1 2; 3 4]`

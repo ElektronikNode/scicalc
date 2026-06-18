@@ -2,7 +2,7 @@
 % Open this file in scicalc and refresh the document.
 
 getVersion()
-				2.0.0-009
+				2.0.1-001
 
 // Accounting for line based continued calculations:
 setAccounting(1)
@@ -45,6 +45,8 @@ ceil(1.2)
 				2
 floor(1.8)
 				1
+round(1.5)
+				2
 
 % Variables and previous result
 a=3
@@ -108,6 +110,12 @@ A./2
 				⎣  1.5 2 ⎦
 2.^[1 2 3]
 				[2 4 8]
+sin(A)
+				⎡ 841.471m  909.297m ⎤
+				⎣  141.12m -756.802m ⎦
+round(A./2)
+				⎡ 1 1 ⎤
+				⎣ 2 2 ⎦
 
 % Larger matrix multiplication
 C=[1 2 3; 4 5 6]

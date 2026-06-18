@@ -6,4 +6,19 @@ else()
 	set(_scicalc_build_number "000")
 endif()
 
-set(CPACK_PACKAGE_VERSION "@PROJECT_VERSION@-${_scicalc_build_number}")
+if(NOT _scicalc_build_number MATCHES "^[0-9]+$")
+	message(FATAL_ERROR "Invalid build number in ${_scicalc_build_number_file}: ${_scicalc_build_number}")
+endif()
+
+# CPack runs CMake's preinstall target before creating the package. That target
+# increments the build number, so the package metadata must anticipate it.
+math(EXPR _scicalc_package_build_number "${_scicalc_build_number} + 1")
+if(_scicalc_package_build_number GREATER 999)
+	message(FATAL_ERROR "Build number exceeded 999")
+elseif(_scicalc_package_build_number LESS 10)
+	set(_scicalc_package_build_number "00${_scicalc_package_build_number}")
+elseif(_scicalc_package_build_number LESS 100)
+	set(_scicalc_package_build_number "0${_scicalc_package_build_number}")
+endif()
+
+set(CPACK_PACKAGE_VERSION "@PROJECT_VERSION@-${_scicalc_package_build_number}")

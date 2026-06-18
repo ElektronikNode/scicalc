@@ -139,6 +139,7 @@ log(x), ln(x)       natuerlicher Logarithmus
 log10(x)            dekadischer Logarithmus
 ceil(x)             Aufrunden
 floor(x)            Abrunden
+round(x)            Runden
 sin(x), cos(x)      Winkelfunktionen in Radiant
 tan(x)
 asin(x), acos(x)    inverse Winkelfunktionen in Radiant
@@ -159,6 +160,10 @@ setAccounting(b)     Accounting-Modus temporaer ein-/ausschalten (0 oder 1)
 
 Diese Funktionen koennen je Refresh einmal verwendet werden.
 
+Alle einargumentigen mathematischen Funktionen werden elementweise auf Vektoren
+und Matrizen angewendet. `atan2(y,x)` wird ebenfalls elementweise ausgewertet
+und unterstuetzt Skalar-Broadcast.
+
 ## 8. Vektoren und Matrizen
 
 Matrix- und Vektorwerte verwenden ein Matlab-aehnliches Literalformat:
@@ -169,6 +174,11 @@ Matrix- und Vektorwerte verwenden ein Matlab-aehnliches Literalformat:
 [1 2; 3 4]       2x2-Matrix
 [1, 2; 3, 4]     Kommas als Spaltentrenner
 ```
+
+Hinweis: Ausserhalb von Matrixliteralen kann wie bisher das Dezimalkomma
+verwendet werden, z.B. `5,4`. Innerhalb von `[...]` folgt scicalc der
+Matlab-Syntax: Kommas trennen Elemente. Dezimalzahlen in Vektoren und Matrizen
+daher mit Punkt schreiben, z.B. `[5.4 6 7]`.
 
 Ranges erzeugen Zeilenvektoren:
 
@@ -252,7 +262,7 @@ build/scicalc
 ```
 
 Die Buildnummer wird bei jedem Build automatisch erhoeht. `getVersion()` zeigt
-die Version inklusive dreistelliger Buildnummer an, z.B. `2.0.0-###`.
+die Version inklusive dreistelliger Buildnummer an, z.B. `2.0.1-###`.
 
 ## 13. Debian-Paket
 

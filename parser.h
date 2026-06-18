@@ -60,6 +60,8 @@ private:
 	static Value inverse(Value value);
 	static Value transpose(Value value);
 	static Value negate(Value value);
+	static Value mapUnary(Value value, long double (*function)(long double), QString context);
+	static Value mapBinary(Value left, Value right, long double (*function)(long double, long double), QString context);
 
 	static void check(Token::Kind expected);
 

@@ -20,6 +20,23 @@
 
 namespace
 {
+	long double fnSqrt(long double value) { return sqrtl(value); }
+	long double fnExp(long double value) { return expl(value); }
+	long double fnLog(long double value) { return logl(value); }
+	long double fnLog10(long double value) { return log10l(value); }
+	long double fnCeil(long double value) { return ceill(value); }
+	long double fnFloor(long double value) { return floorl(value); }
+	long double fnRound(long double value) { return roundl(value); }
+	long double fnSin(long double value) { return sinl(value); }
+	long double fnCos(long double value) { return cosl(value); }
+	long double fnTan(long double value) { return tanl(value); }
+	long double fnAsin(long double value) { return asinl(value); }
+	long double fnAcos(long double value) { return acosl(value); }
+	long double fnAtan(long double value) { return atanl(value); }
+	long double fnAbs(long double value) { return fabsl(value); }
+	long double fnRad2Deg(long double value) { return value*180/M_PI; }
+	long double fnAtan2(long double y, long double x) { return atan2l(y, x); }
+
 	long double cleanNumber(long double value)
 	{
 		if(fabsl(value)<1e-12L)
@@ -151,6 +168,7 @@ QStringList Parser::functionNames()
 		<< "log10"
 		<< "ceil"
 		<< "floor"
+		<< "round"
 		<< "inv"
 		<< "sin"
 		<< "cos"
@@ -398,23 +416,24 @@ Value Parser::Function()
 	check(Token::rpar);
 
 	// select function and execute it
-	if     (fun=="sqrt"){	n=1;	value=Value(sqrt(requireScalar(args.value(0), fun)));}
-	else if(fun=="exp"){	n=1;	value=Value(exp(requireScalar(args.value(0), fun)));}
-	else if(fun=="log"){	n=1;	value=Value(log(requireScalar(args.value(0), fun)));}
-	else if(fun=="ln"){		n=1;	value=Value(log(requireScalar(args.value(0), fun)));}
-	else if(fun=="log10"){	n=1;	value=Value(log10(requireScalar(args.value(0), fun)));}
-	else if(fun=="ceil"){	n=1;	value=Value(ceil(requireScalar(args.value(0), fun)));}
-	else if(fun=="floor"){	n=1;	value=Value(floor(requireScalar(args.value(0), fun)));}
+	if     (fun=="sqrt"){	n=1;	value=mapUnary(args.value(0), fnSqrt, fun);}
+	else if(fun=="exp"){	n=1;	value=mapUnary(args.value(0), fnExp, fun);}
+	else if(fun=="log"){	n=1;	value=mapUnary(args.value(0), fnLog, fun);}
+	else if(fun=="ln"){		n=1;	value=mapUnary(args.value(0), fnLog, fun);}
+	else if(fun=="log10"){	n=1;	value=mapUnary(args.value(0), fnLog10, fun);}
+	else if(fun=="ceil"){	n=1;	value=mapUnary(args.value(0), fnCeil, fun);}
+	else if(fun=="floor"){	n=1;	value=mapUnary(args.value(0), fnFloor, fun);}
+	else if(fun=="round"){	n=1;	value=mapUnary(args.value(0), fnRound, fun);}
 	else if(fun=="inv"){	n=1;	value=inverse(args.value(0));}
-	else if(fun=="sin"){	n=1;	value=Value(sin(requireScalar(args.value(0), fun)));}
-	else if(fun=="cos"){	n=1;	value=Value(cos(requireScalar(args.value(0), fun)));}
-	else if(fun=="tan"){	n=1;	value=Value(tan(requireScalar(args.value(0), fun)));}
-	else if(fun=="asin"){	n=1;	value=Value(asin(requireScalar(args.value(0), fun)));}
-	else if(fun=="acos"){	n=1;	value=Value(acos(requireScalar(args.value(0), fun)));}
-	else if(fun=="atan"){	n=1;	value=Value(atan(requireScalar(args.value(0), fun)));}
-	else if(fun=="atan2"){	n=2;	value=Value(atan2(requireScalar(args.value(0), fun), requireScalar(args.value(1), fun)));}
-	else if(fun=="abs"){	n=1;	value=Value(fabs(requireScalar(args.value(0), fun)));}
-	else if(fun=="rad2deg"){n=1;	value=Value(requireScalar(args.value(0), fun)*180/M_PI);}
+	else if(fun=="sin"){	n=1;	value=mapUnary(args.value(0), fnSin, fun);}
+	else if(fun=="cos"){	n=1;	value=mapUnary(args.value(0), fnCos, fun);}
+	else if(fun=="tan"){	n=1;	value=mapUnary(args.value(0), fnTan, fun);}
+	else if(fun=="asin"){	n=1;	value=mapUnary(args.value(0), fnAsin, fun);}
+	else if(fun=="acos"){	n=1;	value=mapUnary(args.value(0), fnAcos, fun);}
+	else if(fun=="atan"){	n=1;	value=mapUnary(args.value(0), fnAtan, fun);}
+	else if(fun=="atan2"){	n=2;	value=mapBinary(args.value(0), args.value(1), fnAtan2, fun);}
+	else if(fun=="abs"){	n=1;	value=mapUnary(args.value(0), fnAbs, fun);}
+	else if(fun=="rad2deg"){n=1;	value=mapUnary(args.value(0), fnRad2Deg, fun);}
 	else if(fun=="setDigits")
 	{
 		n=1;
@@ -900,6 +919,75 @@ Value Parser::transpose(Value value)
 Value Parser::negate(Value value)
 {
 	return elementWise(Value(-1), value, Token::times);
+}
+
+Value Parser::mapUnary(Value value, long double (*function)(long double), QString context)
+{
+	if(value.isScalar())
+	{
+		long double result=cleanNumber(function(value.scalar()));
+		if(result!=result)
+		{
+			throw ParseException("function '"+context+"' returned NaN");
+		}
+		return Value(result);
+	}
+
+	Value::Matrix result;
+	for(int r=0; r<value.rows(); r++)
+	{
+		Value::Row row;
+		for(int c=0; c<value.columns(); c++)
+		{
+			long double cell=cleanNumber(function(value.at(r, c)));
+			if(cell!=cell)
+			{
+				throw ParseException("function '"+context+"' returned NaN");
+			}
+			row.append(cell);
+		}
+		result.append(row);
+	}
+	return Value(result);
+}
+
+Value Parser::mapBinary(Value left, Value right, long double (*function)(long double, long double), QString context)
+{
+	if(left.isScalar() && right.isScalar())
+	{
+		long double result=cleanNumber(function(left.scalar(), right.scalar()));
+		if(result!=result)
+		{
+			throw ParseException("function '"+context+"' returned NaN");
+		}
+		return Value(result);
+	}
+
+	int rows=left.isScalar() ? right.rows() : left.rows();
+	int columns=left.isScalar() ? right.columns() : left.columns();
+	if(!left.isScalar() && !right.isScalar())
+	{
+		requireSameSize(left, right, context);
+	}
+
+	Value::Matrix result;
+	for(int r=0; r<rows; r++)
+	{
+		Value::Row row;
+		for(int c=0; c<columns; c++)
+		{
+			long double l=left.isScalar() ? left.scalar() : left.at(r, c);
+			long double rr=right.isScalar() ? right.scalar() : right.at(r, c);
+			long double cell=cleanNumber(function(l, rr));
+			if(cell!=cell)
+			{
+				throw ParseException("function '"+context+"' returned NaN");
+			}
+			row.append(cell);
+		}
+		result.append(row);
+	}
+	return Value(result);
 }
 
 
