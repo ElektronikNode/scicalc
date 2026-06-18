@@ -5,6 +5,9 @@ exp       Exponentialfunktion (e^ )
 log       natürlicher Logarithmus
 ln        --||--
 log10     dekadischer Logarithmus
+ceil      Aufrunden zur nächsten ganzen Zahl
+floor     Abrunden zur nächsten ganzen Zahl
+inv       Matrix invertieren
 sin       Sinusfunktion (mit Radiant)
 cos       Cosinusfunktion (mit Radiant)
 tan       Tangensfunktion (mit Radiant)
@@ -14,9 +17,9 @@ atan      Arcustangensfunktion (ergibt Radiant)
 atan2     verbesserte Arcustangensfunktion (Gegenkathete, Ankathete)
 abs       Betragsfunktion
 rad2deg   Umrechnung von Radiant auf Grad
+getVersion gibt die scicalc-Version aus
 
 
 setDigits         legt temporär die Anzahl signifikanter Stellen (1..15) fest
 setTrailingZeros  schaltet abschließende Nullen in der Ausgabe ein (1) oder aus (0)
 setAccounting     aktiviert (1) bzw. deaktiviert (0) den Accounting-Modus
-

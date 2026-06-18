@@ -44,6 +44,12 @@ void Variables::init()
 
 void Variables::set(QString name, long double value, QString unit)
 {
+	set(name, Value(value), unit);
+}
+
+
+void Variables::set(QString name, Value value, QString unit)
+{
 	//qDebug() << "setVariable" << name;
 	// search the list for this name
 	Variable* var=search(name);
@@ -65,6 +71,17 @@ void Variables::set(QString name, long double value, QString unit)
 
 
 long double Variables::get(QString name)
+{
+	Value value=getValue(name);
+	if(!value.isScalar())
+	{
+		throw ParseException("variable '"+name+"' is not a scalar");
+	}
+	return value.scalar();
+}
+
+
+Value Variables::getValue(QString name)
 {
 	Variable* var=search(name);
 	if(var==0)

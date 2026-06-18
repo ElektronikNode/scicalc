@@ -18,6 +18,7 @@ public:
 	~scicalc();
 	
 	static scicalc* app();
+	static QString getVersion();
 
 	void load(QString fileName);
 	void save(QString fileName);

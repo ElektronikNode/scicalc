@@ -1,0 +1,9 @@
+set(_scicalc_build_number_file "@SCICALC_BUILD_NUMBER_FILE@")
+if(EXISTS "${_scicalc_build_number_file}")
+	file(READ "${_scicalc_build_number_file}" _scicalc_build_number)
+	string(STRIP "${_scicalc_build_number}" _scicalc_build_number)
+else()
+	set(_scicalc_build_number "000")
+endif()
+
+set(CPACK_PACKAGE_VERSION "@PROJECT_VERSION@-${_scicalc_build_number}")

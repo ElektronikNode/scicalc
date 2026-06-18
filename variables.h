@@ -18,8 +18,10 @@ public:
 	static void init();
 
 	static void set(QString name, long double value, QString unit=QString());
+	static void set(QString name, Value value, QString unit=QString());
 	
 	static long double get(QString name);
+	static Value getValue(QString name);
 	static QList<Variable*> all();
 
 private:

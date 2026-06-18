@@ -1,6 +1,26 @@
 scicalc changelog
 =================
 
+# V2.0.0
+* Erste Matlab-aehnliche Syntax fuer Vektoren und Matrizen
+* Matrixliterale mit Leerzeichen, Komma und Semikolon, z.B. `[1 2; 3 4]`
+* Range-Operator `start:end` und `start:step:end`
+* Matrixausgabe mit ausgerichteten Spalten und Unicode-Rahmen
+* Matrixoperatoren `+`, `-`, `*`, `/`, `.*`, `./`, `.^` und Transpose `'`
+* Matrixinversion mit `inv(A)` auf Basis von Eigen
+* Neue Funktionen `ceil`, `floor` und `getVersion`
+* Interner `Value`-Typ fuer Skalare und Matrizen
+* Automatische dreistellige Buildnummer, z.B. `2.0.0-###`
+* Neue Demo- und Regressionstestdateien `test-demo.sc` und `test-cases.sc`
+
+# V1.1.0
+* Variablen-, Konstanten- und Funktionsvorschlaege im Editor
+* Completion automatisch ab erstem Namenszeichen und manuell mit Strg+Space
+* Variablenvorschlaege zeigen Wert und Einheit
+* `#Ohm` wird als `Ω` ausgegeben
+* Umstellung auf CMake mit Build-Unterverzeichnis `build/`
+* Debian-Paketierung mit CPack, Desktop-Launcher und Icon-Installation
+
 # V1.0.1
 * Accounting-Modus überspringt nun Leer- und Kommentarzeilen und verknüpft konsequent mit dem nächsten gültigen Ergebnis
 * Diverse kleinere Stabilitäts- und Dokumentationsverbesserungen

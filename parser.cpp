@@ -16,6 +16,54 @@
 #include <cmath>
 #include <QList>
 #include <QDebug>
+#include <Eigen/Dense>
+
+namespace
+{
+	long double cleanNumber(long double value)
+	{
+		if(fabsl(value)<1e-12L)
+		{
+			return 0;
+		}
+
+		long double rounded=roundl(value);
+		if(fabsl(value-rounded)<1e-12L)
+		{
+			return rounded;
+		}
+
+		return value;
+	}
+
+	Eigen::MatrixXd toEigen(Value value)
+	{
+		Eigen::MatrixXd matrix(value.rows(), value.columns());
+		for(int r=0; r<value.rows(); r++)
+		{
+			for(int c=0; c<value.columns(); c++)
+			{
+				matrix(r, c)=static_cast<double>(value.at(r, c));
+			}
+		}
+		return matrix;
+	}
+
+	Value fromEigen(const Eigen::MatrixXd &matrix)
+	{
+		Value::Matrix result;
+		for(int r=0; r<matrix.rows(); r++)
+		{
+			Value::Row row;
+			for(int c=0; c<matrix.cols(); c++)
+			{
+				row.append(cleanNumber(matrix(r, c)));
+			}
+			result.append(row);
+		}
+		return Value(result);
+	}
+}
 
 
 Token* Parser::t=0;					// current token
@@ -28,7 +76,7 @@ QString Parser::assignedVariable;
 QString Parser::parse()
 {
 	//qDebug("start parsing");
-	long double value;
+	Value value;
 	QString output;
 	assignedVariable.clear();
 
@@ -44,39 +92,46 @@ QString Parser::parse()
 		}
 		else
 		{
-			value=Assignment();
-			if(sym==Token::semicolon)
+			if(VersionFunction(&output))
 			{
-				// no output when ';' at end of line
-				check(Token::semicolon);
-				output="";
-				
-				// accept unit, but ignore it
-				if(sym==Token::unit)
-				{
-					check(Token::unit);
-					if(!assignedVariable.isEmpty())
-					{
-						Variables::set(assignedVariable, value, t->string);
-					}
-				}
+				// output has already been produced by the special string function
 			}
 			else
 			{
-				output=Print::sciPrint(value);
-				
-				// append unit
-				if(sym==Token::unit)
+				value=Assignment();
+				if(sym==Token::semicolon)
 				{
-					check(Token::unit);
-					output+=t->string;
-					if(!assignedVariable.isEmpty())
+					// no output when ';' at end of line
+					check(Token::semicolon);
+					output="";
+					
+					// accept unit, but ignore it
+					if(sym==Token::unit)
 					{
-						Variables::set(assignedVariable, value, t->string);
+						check(Token::unit);
+						if(!assignedVariable.isEmpty())
+						{
+							Variables::set(assignedVariable, value, t->string);
+						}
 					}
 				}
+				else
+				{
+					output=formatValue(value);
+					
+					// append unit
+					if(sym==Token::unit)
+					{
+						check(Token::unit);
+						output+=t->string;
+						if(!assignedVariable.isEmpty())
+						{
+							Variables::set(assignedVariable, value, t->string);
+						}
+					}
+				}
+				check(Token::eof);
 			}
-			check(Token::eof);
 		}
 	}
 	catch (ParseException e)
@@ -94,6 +149,9 @@ QStringList Parser::functionNames()
 		<< "log"
 		<< "ln"
 		<< "log10"
+		<< "ceil"
+		<< "floor"
+		<< "inv"
 		<< "sin"
 		<< "cos"
 		<< "tan"
@@ -103,16 +161,17 @@ QStringList Parser::functionNames()
 		<< "atan2"
 		<< "abs"
 		<< "rad2deg"
+		<< "getVersion"
 		<< "setDigits"
 		<< "setTrailingZeros"
 		<< "setAccounting";
 }
 
 
-long double Parser::Power()
+Value Parser::Power()
 {
 	//qDebug("parse Power");
-	long double value=0;
+	Value value;
 
 	if(sym==Token::ident)
 	{
@@ -125,90 +184,112 @@ long double Parser::Power()
 		else
 		{
 			// variable or constant
-			value=Variables::get(t->string);
+			value=Variables::getValue(t->string);
 		}
 	}
 	else if(sym==Token::number)
 	{
 		check(Token::number);
-		value=t->value;
+		value=Value(t->value);
 	}
 	else if(sym==Token::lpar)
 	{
 		check(Token::lpar);
-		value=Expression();
+		value=Range();
 		check(Token::rpar);
+	}
+	else if(sym==Token::lsquare)
+	{
+		value=MatrixLiteral();
 	}
 	else
 	{
 		throw ParseException("unexpected symbol '"+symbol(la)+"'");
 	}
 
+	while(sym==Token::transpose)
+	{
+		check(Token::transpose);
+		value=transpose(value);
+	}
+
 	return value;
 }
 
 
-long double Parser::Factor()
+Value Parser::Factor()
 {
 	//qDebug("parse Factor");
-	long double value=Power();
-	while(sym==Token::hat)
+	Value value=Power();
+	while(sym==Token::hat || sym==Token::dotHat)
 	{
-		check(Token::hat);
-		value=pow(value, Power());
+		Token::Kind op=sym;
+		check(op);
+		if(op==Token::hat)
+		{
+			value=power(value, Power());
+		}
+		else
+		{
+			value=elementWise(value, Power(), op);
+		}
 	}
 	return value;
 }
 
-long double Parser::Parallel()
+Value Parser::Parallel()
 {
 	//qDebug("parse Parallel");
-	long double value=Factor();
-	while(sym==Token::times || sym==Token::slash)
+	Value value=Factor();
+	while(sym==Token::times || sym==Token::slash || sym==Token::dotTimes || sym==Token::dotSlash)
 	{
 		if(sym==Token::times)
 		{
 			check(Token::times);
-			value*=Factor();
+			value=multiply(value, Factor());
 		}
-		else
+		else if(sym==Token::slash)
 		{
 			check(Token::slash);
 			value=divide(value, Factor());
+		}
+		else
+		{
+			Token::Kind op=sym;
+			check(op);
+			value=elementWise(value, Factor(), op);
 		}
 	}
 	return value;
 }
 
-long double Parser::Term()
+Value Parser::Term()
 {
 	//qDebug("parse Term");
-	long double sum=Parallel();
+	Value sum=Parallel();
 
 	if(sym==Token::parallel)
 	{
-		sum=divide(1, sum);
-
 		while(sym==Token::parallel)
 		{
 			check(Token::parallel);
-			sum+=divide(1, Parallel());
+			sum=parallel(sum, Parallel());
 		}
-		sum=divide(1, sum);
 	}
 
 	return sum;
 }
 
 
-long double Parser::Expression()
+Value Parser::Expression()
 {
 	//qDebug("parse Expression");
-	long double value=0;
-	int sign=1;
+	Value value;
+	bool hasValue=false;
 
 	do
 	{
+		int sign=1;
 		if(sym==Token::plus)
 		{
 			check(Token::plus);
@@ -220,18 +301,51 @@ long double Parser::Expression()
 			sign=(-1);
 		}
 
-		value+=sign*Term();
+		Value term=Term();
+		if(sign<0)
+		{
+			term=negate(term);
+		}
+
+		if(!hasValue)
+		{
+			value=term;
+			hasValue=true;
+		}
+		else
+		{
+			value=add(value, term);
+		}
 	}
 	while(sym==Token::plus || sym==Token::minus);
 
 	return value;
 }
 
+Value Parser::Range()
+{
+	Value start=Expression();
+	if(sym!=Token::colon)
+	{
+		return start;
+	}
 
-long double Parser::Assignment()
+	check(Token::colon);
+	Value second=Expression();
+	if(sym==Token::colon)
+	{
+		check(Token::colon);
+		return range(start, second, Expression());
+	}
+
+	return range(start, second);
+}
+
+
+Value Parser::Assignment()
 {
 	//qDebug("parse Assingment");
-	long double value=0;
+	Value value;
 
 	if(Scanner::peek()->kind==Token::assign)
 	{
@@ -239,7 +353,7 @@ long double Parser::Assignment()
 		check(Token::ident);
 		QString var=t->string;
 		check(Token::assign);
-		value=Expression();
+		value=Range();
 
 		if(var!="$")
 		{
@@ -250,7 +364,7 @@ long double Parser::Assignment()
 	else
 	{
 		// this is a normal expression
-		value=Expression();
+		value=Range();
 	}
 
 	Variables::set("$", value);
@@ -259,12 +373,12 @@ long double Parser::Assignment()
 }
 
 
-long double Parser::Function()
+Value Parser::Function()
 {
 	//qDebug("parse Function");
 	QString fun;
-	QList<long double> args;
-	long double value=0;
+	QList<Value> args;
+	Value value;
 	int n=0;
 
 	// remember function name
@@ -274,34 +388,37 @@ long double Parser::Function()
 	check(Token::lpar);
 	if(sym!=Token::rpar)
 	{
-		args.append(Expression());
+		args.append(Range());
 		while(sym==Token::comma)
 		{
 			check(Token::comma);
-			args.append(Expression());
+			args.append(Range());
 		}
 	}
 	check(Token::rpar);
 
 	// select function and execute it
-	if     (fun=="sqrt"){	n=1;	value=sqrt(args.value(0));}
-	else if(fun=="exp"){	n=1;	value=exp(args.value(0));}
-	else if(fun=="log"){	n=1;	value=log(args.value(0));}
-	else if(fun=="ln"){		n=1;	value=log(args.value(0));}
-	else if(fun=="log10"){	n=1;	value=log10(args.value(0));}
-	else if(fun=="sin"){	n=1;	value=sin(args.value(0));}
-	else if(fun=="cos"){	n=1;	value=cos(args.value(0));}
-	else if(fun=="tan"){	n=1;	value=tan(args.value(0));}
-	else if(fun=="asin"){	n=1;	value=asin(args.value(0));}
-	else if(fun=="acos"){	n=1;	value=acos(args.value(0));}
-	else if(fun=="atan"){	n=1;	value=atan(args.value(0));}
-	else if(fun=="atan2"){	n=2;	value=atan2(args.value(0), args.value(1));}
-	else if(fun=="abs"){	n=1;	value=fabs(args.value(0));}
-	else if(fun=="rad2deg"){n=1;	value=args.value(0)*180/M_PI;}
+	if     (fun=="sqrt"){	n=1;	value=Value(sqrt(requireScalar(args.value(0), fun)));}
+	else if(fun=="exp"){	n=1;	value=Value(exp(requireScalar(args.value(0), fun)));}
+	else if(fun=="log"){	n=1;	value=Value(log(requireScalar(args.value(0), fun)));}
+	else if(fun=="ln"){		n=1;	value=Value(log(requireScalar(args.value(0), fun)));}
+	else if(fun=="log10"){	n=1;	value=Value(log10(requireScalar(args.value(0), fun)));}
+	else if(fun=="ceil"){	n=1;	value=Value(ceil(requireScalar(args.value(0), fun)));}
+	else if(fun=="floor"){	n=1;	value=Value(floor(requireScalar(args.value(0), fun)));}
+	else if(fun=="inv"){	n=1;	value=inverse(args.value(0));}
+	else if(fun=="sin"){	n=1;	value=Value(sin(requireScalar(args.value(0), fun)));}
+	else if(fun=="cos"){	n=1;	value=Value(cos(requireScalar(args.value(0), fun)));}
+	else if(fun=="tan"){	n=1;	value=Value(tan(requireScalar(args.value(0), fun)));}
+	else if(fun=="asin"){	n=1;	value=Value(asin(requireScalar(args.value(0), fun)));}
+	else if(fun=="acos"){	n=1;	value=Value(acos(requireScalar(args.value(0), fun)));}
+	else if(fun=="atan"){	n=1;	value=Value(atan(requireScalar(args.value(0), fun)));}
+	else if(fun=="atan2"){	n=2;	value=Value(atan2(requireScalar(args.value(0), fun), requireScalar(args.value(1), fun)));}
+	else if(fun=="abs"){	n=1;	value=Value(fabs(requireScalar(args.value(0), fun)));}
+	else if(fun=="rad2deg"){n=1;	value=Value(requireScalar(args.value(0), fun)*180/M_PI);}
 	else if(fun=="setDigits")
 	{
 		n=1;
-		long double arg=args.value(0);
+		long double arg=requireScalar(args.value(0), fun);
 		int digits=static_cast<int>(arg);
 		if(arg!=digits)
 		{
@@ -315,12 +432,12 @@ long double Parser::Function()
 		{
 			throw ParseException("setDigits can only be called once per script");
 		}
-		value=digits;
+		value=Value(digits);
 	}
 	else if(fun=="setTrailingZeros")
 	{
 		n=1;
-		long double arg=args.value(0);
+		long double arg=requireScalar(args.value(0), fun);
 		int flag=static_cast<int>(arg);
 		if(arg!=flag || (flag!=0 && flag!=1))
 		{
@@ -330,12 +447,12 @@ long double Parser::Function()
 		{
 			throw ParseException("setTrailingZeros can only be called once per script");
 		}
-		value=flag;
+		value=Value(flag);
 	}
 	else if(fun=="setAccounting")
 	{
 		n=1;
-		long double arg=args.value(0);
+		long double arg=requireScalar(args.value(0), fun);
 		int flag=static_cast<int>(arg);
 		if(arg!=flag || (flag!=0 && flag!=1))
 		{
@@ -345,7 +462,7 @@ long double Parser::Function()
 		{
 			throw ParseException("setAccounting can only be called once per script");
 		}
-		value=flag;
+		value=Value(flag);
 	}
 	else
 	{
@@ -357,12 +474,122 @@ long double Parser::Function()
 		throw ParseException("invalid number of arguments for function '"+fun+"'");
 	}
 
-	if(value!=value)		// isnan(value) does only work with C++11
+	if(value.isScalar() && value.scalar()!=value.scalar())		// isnan(value) does only work with C++11
 	{
 		throw ParseException("function '"+fun+"' returned NaN");
 	}
 
 	return(value);
+}
+
+bool Parser::VersionFunction(QString *output)
+{
+	if(sym!=Token::ident || la->string!="getVersion")
+	{
+		return false;
+	}
+
+	check(Token::ident);
+	check(Token::lpar);
+	check(Token::rpar);
+	check(Token::eof);
+	*output=scicalc::getVersion();
+	return true;
+}
+
+Value Parser::MatrixLiteral()
+{
+	check(Token::lsquare);
+
+	Value::Matrix matrix;
+	Value::Row row;
+	int columns=-1;
+
+	while(sym!=Token::rsquare)
+	{
+		if(sym==Token::eof)
+		{
+			throw ParseException("expected ']' but received 'end of line'");
+		}
+		if(sym==Token::semicolon)
+		{
+			throw ParseException("empty matrix rows are not supported");
+		}
+		if(!isExpressionStart(sym))
+		{
+			throw ParseException("unexpected symbol '"+symbol(la)+"' in matrix literal");
+		}
+
+		Value element=Range();
+		if(element.isScalar())
+		{
+			row.append(element.scalar());
+		}
+		else if(element.rows()==1)
+		{
+			for(int c=0; c<element.columns(); c++)
+			{
+				row.append(element.at(0, c));
+			}
+		}
+		else
+		{
+			throw ParseException("matrix literal elements must be scalar values or row vectors");
+		}
+
+		if(sym==Token::comma)
+		{
+			check(Token::comma);
+		}
+		else if(sym==Token::semicolon)
+		{
+			check(Token::semicolon);
+			if(columns<0)
+			{
+				columns=row.size();
+			}
+			else if(row.size()!=columns)
+			{
+				throw ParseException("all matrix rows must have the same length");
+			}
+			matrix.append(row);
+			row.clear();
+			if(sym==Token::rsquare)
+			{
+				throw ParseException("empty matrix rows are not supported");
+			}
+		}
+		else if(sym==Token::rsquare)
+		{
+			// matrix ends after this row
+		}
+		else if(isExpressionStart(sym))
+		{
+			// Matlab-style whitespace separated columns. Whitespace is skipped by the scanner,
+			// so the next expression starts immediately.
+		}
+		else
+		{
+			throw ParseException("expected ',', ';' or ']' but received '"+symbol(la)+"'");
+		}
+	}
+
+	check(Token::rsquare);
+
+	if(!row.isEmpty())
+	{
+		if(columns<0)
+		{
+			columns=row.size();
+		}
+		else if(row.size()!=columns)
+		{
+			throw ParseException("all matrix rows must have the same length");
+		}
+		matrix.append(row);
+	}
+
+	return Value(matrix);
 }
 
 
@@ -376,6 +603,303 @@ long double Parser::divide(long double dividend, long double divisor)
 	{
 		throw ParseException("division by zero");
 	}
+}
+
+long double Parser::requireScalar(Value value, QString context)
+{
+	if(!value.isScalar())
+	{
+		throw ParseException(context + " expects scalar values");
+	}
+	return value.scalar();
+}
+
+QString Parser::formatValue(Value value)
+{
+	if(value.isScalar())
+	{
+		return Print::sciPrint(value.scalar());
+	}
+
+	if(value.rows()==0 || value.columns()==0)
+	{
+		return "[]";
+	}
+
+	QList<QStringList> formattedRows;
+	QList<int> columnWidths;
+	for(int c=0; c<value.columns(); c++)
+	{
+		columnWidths.append(0);
+	}
+
+	for(int r=0; r<value.rows(); r++)
+	{
+		QStringList formattedColumns;
+		for(int c=0; c<value.columns(); c++)
+		{
+			QString cell=Print::sciPrint(cleanNumber(value.at(r, c)));
+			formattedColumns.append(cell);
+			if(cell.length()>columnWidths[c])
+			{
+				columnWidths[c]=cell.length();
+			}
+		}
+		formattedRows.append(formattedColumns);
+	}
+
+	if(value.rows()==1)
+	{
+		QStringList columns;
+		for(int c=0; c<value.columns(); c++)
+		{
+			columns.append(formattedRows.at(0).at(c).rightJustified(columnWidths.at(c), ' '));
+		}
+		return "[" + columns.join(" ") + "]";
+	}
+
+	QStringList rows;
+	for(int r=0; r<value.rows(); r++)
+	{
+		QStringList columns;
+		for(int c=0; c<value.columns(); c++)
+		{
+			columns.append(formattedRows.at(r).at(c).rightJustified(columnWidths.at(c), ' '));
+		}
+		QString leftBracket="⎢";
+		QString rightBracket="⎥";
+		if(r==0)
+		{
+			leftBracket="⎡";
+			rightBracket="⎤";
+		}
+		else if(r==value.rows()-1)
+		{
+			leftBracket="⎣";
+			rightBracket="⎦";
+		}
+		rows.append(leftBracket + " " + columns.join(" ") + " " + rightBracket);
+	}
+	return rows.join("\n");
+}
+
+bool Parser::isExpressionStart(Token::Kind kind)
+{
+	return kind==Token::ident || kind==Token::number || kind==Token::lpar ||
+		kind==Token::lsquare || kind==Token::plus || kind==Token::minus;
+}
+
+void Parser::requireSameSize(Value left, Value right, QString op)
+{
+	if(left.rows()!=right.rows() || left.columns()!=right.columns())
+	{
+		throw ParseException("matrix dimensions must agree for '" + op + "'");
+	}
+}
+
+Value Parser::elementWise(Value left, Value right, Token::Kind op)
+{
+	if(left.isScalar() && right.isScalar())
+	{
+		switch(op)
+		{
+			case Token::plus:		return Value(cleanNumber(left.scalar() + right.scalar()));
+			case Token::minus:		return Value(cleanNumber(left.scalar() - right.scalar()));
+			case Token::times:
+			case Token::dotTimes:	return Value(cleanNumber(left.scalar() * right.scalar()));
+			case Token::slash:
+			case Token::dotSlash:	return Value(cleanNumber(divide(left.scalar(), right.scalar())));
+			case Token::hat:
+			case Token::dotHat:		return Value(cleanNumber(pow(left.scalar(), right.scalar())));
+			default:				throw ParseException("unsupported element-wise operator");
+		}
+	}
+
+	int rows=left.isScalar() ? right.rows() : left.rows();
+	int columns=left.isScalar() ? right.columns() : left.columns();
+	if(!left.isScalar() && !right.isScalar())
+	{
+		requireSameSize(left, right, symbol(op));
+	}
+
+	Value::Matrix result;
+	for(int r=0; r<rows; r++)
+	{
+		Value::Row row;
+		for(int c=0; c<columns; c++)
+		{
+			long double l=left.isScalar() ? left.scalar() : left.at(r, c);
+			long double rr=right.isScalar() ? right.scalar() : right.at(r, c);
+			switch(op)
+			{
+				case Token::plus:		row.append(cleanNumber(l + rr)); break;
+				case Token::minus:		row.append(cleanNumber(l - rr)); break;
+				case Token::times:
+				case Token::dotTimes:	row.append(cleanNumber(l * rr)); break;
+				case Token::slash:
+				case Token::dotSlash:	row.append(cleanNumber(divide(l, rr))); break;
+				case Token::hat:
+				case Token::dotHat:		row.append(cleanNumber(pow(l, rr))); break;
+				default:				throw ParseException("unsupported element-wise operator");
+			}
+		}
+		result.append(row);
+	}
+	return Value(result);
+}
+
+Value Parser::add(Value left, Value right)
+{
+	return elementWise(left, right, Token::plus);
+}
+
+Value Parser::subtract(Value left, Value right)
+{
+	return elementWise(left, right, Token::minus);
+}
+
+Value Parser::multiply(Value left, Value right)
+{
+	if(left.isScalar() || right.isScalar())
+	{
+		return elementWise(left, right, Token::times);
+	}
+
+	if(left.columns()!=right.rows())
+	{
+		throw ParseException("matrix dimensions must agree for '*'");
+	}
+
+	Value::Matrix result;
+	for(int r=0; r<left.rows(); r++)
+	{
+		Value::Row row;
+		for(int c=0; c<right.columns(); c++)
+		{
+			long double sum=0;
+			for(int k=0; k<left.columns(); k++)
+			{
+				sum+=left.at(r, k)*right.at(k, c);
+			}
+			row.append(cleanNumber(sum));
+		}
+		result.append(row);
+	}
+	return Value(result);
+}
+
+Value Parser::divide(Value left, Value right)
+{
+	if(right.isScalar())
+	{
+		return elementWise(left, right, Token::slash);
+	}
+	return multiply(left, inverse(right));
+}
+
+Value Parser::power(Value left, Value right)
+{
+	if(left.isScalar() && right.isScalar())
+	{
+		return Value(pow(left.scalar(), right.scalar()));
+	}
+	throw ParseException("matrix power is not implemented; use '.^' for element-wise powers");
+}
+
+Value Parser::parallel(Value left, Value right)
+{
+	long double l=requireScalar(left, "parallel operator");
+	long double r=requireScalar(right, "parallel operator");
+	return Value(divide(l*r, l+r));
+}
+
+Value Parser::range(Value start, Value end)
+{
+	return range(start, Value(1), end);
+}
+
+Value Parser::range(Value start, Value step, Value end)
+{
+	long double startValue=requireScalar(start, "range operator");
+	long double stepValue=requireScalar(step, "range operator");
+	long double endValue=requireScalar(end, "range operator");
+
+	if(stepValue==0)
+	{
+		throw ParseException("range step must not be zero");
+	}
+
+	Value::Row row;
+	if((stepValue>0 && startValue<=endValue) || (stepValue<0 && startValue>=endValue))
+	{
+		long double value=startValue;
+		int guard=0;
+		while((stepValue>0 && value<=endValue) || (stepValue<0 && value>=endValue))
+		{
+			row.append(value);
+			value+=stepValue;
+			guard++;
+			if(guard>100000)
+			{
+				throw ParseException("range produced too many elements");
+			}
+		}
+	}
+
+	Value::Matrix matrix;
+	matrix.append(row);
+	return Value(matrix);
+}
+
+Value Parser::inverse(Value value)
+{
+	if(value.isScalar())
+	{
+		return Value(divide(1, value.scalar()));
+	}
+
+	if(value.rows()!=value.columns())
+	{
+		throw ParseException("inv expects a square matrix");
+	}
+	if(value.rows()==0)
+	{
+		throw ParseException("inv expects a non-empty matrix");
+	}
+
+	Eigen::MatrixXd matrix=toEigen(value);
+	Eigen::FullPivLU<Eigen::MatrixXd> decomposition(matrix);
+	if(!decomposition.isInvertible())
+	{
+		throw ParseException("matrix is singular");
+	}
+
+	return fromEigen(matrix.inverse());
+}
+
+Value Parser::transpose(Value value)
+{
+	if(value.isScalar())
+	{
+		return value;
+	}
+
+	Value::Matrix result;
+	for(int c=0; c<value.columns(); c++)
+	{
+		Value::Row row;
+		for(int r=0; r<value.rows(); r++)
+		{
+			row.append(value.at(r, c));
+		}
+		result.append(row);
+	}
+	return Value(result);
+}
+
+Value Parser::negate(Value value)
+{
+	return elementWise(Value(-1), value, Token::times);
 }
 
 
@@ -446,6 +970,13 @@ QString Parser::symbol(Token* t)
 			case Token::semicolon:	string=";";					break;
 			case Token::langle:		string="<";					break;
 			case Token::rangle:		string=">";					break;
+			case Token::lsquare:	string="[";					break;
+			case Token::rsquare:	string="]";					break;
+			case Token::colon:		string=":";					break;
+			case Token::dotTimes:	string=".*";				break;
+			case Token::dotSlash:	string="./";				break;
+			case Token::dotHat:		string=".^";				break;
+			case Token::transpose:	string="'";					break;
 			case Token::eof:		string="end of line";		break;
 		}
 	}

@@ -16,6 +16,7 @@ const QChar Scanner::eof_CHAR=QChar::LineSeparator;		// end of line
 QChar Scanner::ch;							// last character
 QString Scanner::in;						// input string
 int Scanner::pos;							// current position in input string
+int Scanner::matrixDepth;					// bracket nesting depth for Matlab matrix literals
 
 Token* Scanner::peeked;						// peeked Token
 
@@ -25,6 +26,7 @@ void Scanner::init(QString line)
 	in=line;
 	peeked=0;
 	pos=0;
+	matrixDepth=0;
 
 	nextCh();
 }
@@ -93,7 +95,32 @@ Token* Scanner::next()
 			case '^':	nextCh(); t->kind=Token::hat;	break;
 			case '(':	nextCh(); t->kind=Token::lpar;	break;
 			case ')':	nextCh(); t->kind=Token::rpar;	break;
+			case '[':	nextCh(); matrixDepth++; t->kind=Token::lsquare;	break;
+			case ']':	nextCh(); if(matrixDepth>0){matrixDepth--;} t->kind=Token::rsquare;	break;
 			case ',':	nextCh(); t->kind=Token::comma;	break;
+			case ':':	nextCh(); t->kind=Token::colon;	break;
+			case '\'':	nextCh(); t->kind=Token::transpose;	break;
+			case '.':	nextCh();
+						if(ch=='*')
+						{
+							nextCh();
+							t->kind=Token::dotTimes;
+						}
+						else if(ch=='/')
+						{
+							nextCh();
+							t->kind=Token::dotSlash;
+						}
+						else if(ch=='^')
+						{
+							nextCh();
+							t->kind=Token::dotHat;
+						}
+						else
+						{
+							t->kind=Token::none;
+						}
+						break;
 			case '|':	nextCh();
 						if(ch=='|')
 						{
@@ -218,7 +245,7 @@ void Scanner::readNumber(Token *t)
 	while(isDecimal(ch));
 
 
-    if(ch=='.' || ch==',') // support both decimal separators (American, European)
+    if((ch=='.' || (ch==',' && matrixDepth==0)) && pos<in.size() && isDecimal(in.at(pos))) // support both decimal separators outside matrix literals
 	{
         // digits after '.'/','
 		nextCh();

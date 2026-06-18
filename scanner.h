@@ -36,6 +36,7 @@ private:
     static QChar ch;						// last character
 	static QString in;						// input string
 	static int pos;							// current position in input string
+	static int matrixDepth;					// bracket nesting depth for Matlab matrix literals
 
 	static Token *peeked;					// peeked Token
 };

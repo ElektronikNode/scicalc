@@ -4,6 +4,7 @@
 #include "scanner.h"
 #include "parser.h"
 #include "scicalcblock.h"
+#include "scicalc_version.h"
 
 #include <QDebug>
 #include <QtGui>
@@ -16,7 +17,7 @@
 
 
 const QString scicalc::tempFile=QDir::homePath() + "/.temp.sc";
-const QString scicalc::version="1.1.0";
+const QString scicalc::version=QString::fromLatin1(SCICALC_VERSION);
 
 scicalc* scicalc::myApp=0;
 
@@ -95,6 +96,11 @@ scicalc::scicalc(QMainWindow *parent) :
 scicalc* scicalc::app()
 {
 	return myApp;
+}
+
+QString scicalc::getVersion()
+{
+	return version;
 }
 
 
@@ -523,5 +529,5 @@ void scicalc::on_actionGeneral_settings_triggered()
 
 void scicalc::on_actionAbout_scicalc_triggered()
 {
-    QMessageBox::about(this, "About scicalc", "by Friedrich Feichtinger\nVersion: "+version+"\nGPL v2");
+    QMessageBox::about(this, "About scicalc", "by Friedrich Feichtinger\nKarl Zeilhofer\nVersion: "+version+"\nGPL v2");
 }

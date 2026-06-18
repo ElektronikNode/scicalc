@@ -347,7 +347,15 @@ void ScicalcEdit::updateCompletionModel()
 			continue;
 		}
 
-		QString value=Print::sciPrint(var->value) + var->unit;
+		QString value;
+		if(var->value.isScalar())
+		{
+			value=Print::sciPrint(var->value.scalar()) + var->unit;
+		}
+		else
+		{
+			value=QString("%1x%2 matrix").arg(var->value.rows()).arg(var->value.columns());
+		}
 		QString label=var->name + "    " + value;
 		QStandardItem *item=new QStandardItem(label);
 		item->setData(var->name, Qt::UserRole);
@@ -436,7 +444,7 @@ void ScicalcEdit::cursorPositionChanged()
 		// one line for the output (if any)
 		if(!blocks.at(i).output.isEmpty())
 		{
-			blockLine++;
+			blockLine+=blocks.at(i).output.count("\n")+1;
 		}
 		
 		if(blockLine>=currentLine)
@@ -572,7 +580,15 @@ void ScicalcEdit::refreshDisplay()
 			// print output
 			setTextColor(palette().color(QPalette::BrightText));
 			cursor=textCursor();
-			cursor.insertText("\t\t\t\t"+blocks.at(i).output);
+			QStringList outputLines=blocks.at(i).output.split("\n");
+			for(int line=0; line<outputLines.size(); line++)
+			{
+				if(line>0)
+				{
+					cursor.insertText("\n");
+				}
+				cursor.insertText("\t\t\t\t"+outputLines.at(line));
+			}
 			setTextCursor(cursor);
 			
 			// switch back to input color for next input line
@@ -631,7 +647,7 @@ void ScicalcEdit::setCursorToBlock(int blockIndex)
 		cursorLine++;
 		if(!blocks.at(i).output.isEmpty())
 		{
-			cursorLine++;
+			cursorLine+=blocks.at(i).output.count("\n")+1;
 		}
 	}
 	

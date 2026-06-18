@@ -1,185 +1,293 @@
-
-
 scicalc
 =======
 
-![sceenshot](screenshot.png)
+![screenshot](screenshot.png)
 
 # Bedienungsanleitung
-## 1. Einführung:
-**scicalc** ist ein numerisches Berechnungsprogramm für den PC. Meiner Erfahrung nach gibt es hauptsächlich 2 Arten von Rechenprogrammen:
-* kleine ungeschickte Taschenrechner, mit denen sich 2 Zahlen addieren lassen, aber nicht viel mehr.
-* große Rechenmonster wie zb. Matlab oder Scilab, die lange zum Laden brauchen und schwierig zu bedienen sind.
 
-Mit **scicalc** möchte ich diese Lücke schließen und ein Programm erschaffen, dass sich sowohl als simpler Taschenrechner für täglichen Gebrauch eignet als auch für längere Berechnungen, die als Skript abgespeichert werden können. Weiters ist es in **scicalc** möglich Werte mit wissenschaftlichen Vorsilben einzugeben. Die Ergebnisse werden ebenso in diesem Format ausgegeben.
+## 1. Einfuehrung
 
+**scicalc** ist ein numerisches Berechnungsprogramm fuer den PC. Es verbindet
+die direkte Arbeitsweise eines Taschenrechners mit der Wiederholbarkeit eines
+kleinen Rechenskripts. Eingaben stehen dauerhaft im Dokument, Ergebnisse werden
+direkt darunter angezeigt.
 
-## 2. Bedienung:
-Seit Version 0.8 hat **scicalc** eine grafische Benutzerschnittstelle. Im Textfeld können Rechenanweisungen eingegeben werden, die Ausgabe erfolgt unmittelbar darunter. Um die Berechnung zu aktualisieren beenden Sie entweder die aktuelle Zeile mit Return oder drücken Sie STRG+R.
+Seit Version 2.0 unterstuetzt scicalc neben Skalaren auch erste
+Matlab-aehnliche Vektor- und Matrixausdruecke.
 
-## 3. Ausdrücke:
-Kern des Programms sind mathematische Ausdrücke. Dazu gehören die Grundrechnungsarten (`+, -, *, /`) sowie `^` (Potenzieren) und Klammerausdrücke. Dabei werden die üblichen Vorrangregeln beachtet. zb:
-```
-2+3*5^2         77
-```
-ACHTUNG: Ausdrücke wie `2^-3` sind aus Syntaxgründen nicht erlaubt, schreiben Sie stattdessen `2^(-3)`.
+## 2. Bedienung
 
-Weiters stehen vordefinierte Konstanten, sowie Funktionen und Variablen zur Verfügung. Diese können beliebig in Ausdrücke eingeflochten werden.
+Im Textfeld koennen Rechenanweisungen eingegeben werden. Um die Berechnung zu
+aktualisieren, beenden Sie die aktuelle Zeile mit Return oder druecken Sie
+Strg+R.
 
-Eine spezielle Funktion stellt der Paralleloperator (`||`) dar. Dieser erleichtert das Eingeben von Ausdrücken wie sie zb. sich bei elektrischen Netzwerken häufig ergeben. So muss man um den resulierenden Widerstand einer Parallelschaltung zu berechnen nicht schreiben `1/(1/R1+1/R2+...)`, es reicht zu schreiben: `R1||R2||...`. Der (`||`) Operator bindet stärker als `+` und `-`, aber schwächer als `*` und `/`.
+Variablen, Konstanten und Funktionen werden beim Tippen vorgeschlagen. Die
+Vorschlagsliste erscheint automatisch ab dem ersten Zeichen eines Namens oder
+manuell mit Strg+Space. Bei Variablen wird der aktuelle Wert angezeigt; bei
+Matrizen die Dimension.
 
+## 3. Zahlen und Einheiten
 
-## 4. Zahlen eingeben:
-**scicalc** ist ein numerisches Programm und rechnet durchgängig mit reellen Gleitkommazahlen. Als Dezimaltrennzeichen wird '.' verwendet, es gibt keinen Tausenderpunkt oder ähnliches. Ähnlich wie bei vielen anderen Programmen ist es möglich Zahlen auch mit Zehnerpotenzen einzugeben (zb. 2.997e8 = 2.997*10^8 = 299700000). Außerdem ist die Eingabe mit wissenschaftlichen Vorsilben (SI-Präfixe) möglich, diese sind in **scicalc**:
+scicalc rechnet numerisch mit reellen Gleitkommazahlen. Als Dezimaltrennzeichen
+werden `.` und `,` akzeptiert. In Matrixliteralen trennt `,` jedoch Spalten,
+damit Matlab-Syntax wie `[1, 2; 3, 4]` funktioniert.
 
-```
-10^3    k   "kilo"
-10^6    M   "Mega"
-10^9    G   "Giga"
-10^12   T   "Tera"
-10^15   P   "Peta"
-10^18   E   "Exa"
-	
-10^-3   m   "milli"
-10^-6   u   "mikro"
-10^-9   n   "nano"
-10^-12  p   "piko"
-10^-15  f   "femto"
-10^-18  a   "atto"
-```
-z.B. `1.234M` entspricht 1234000
-
-Weiters kann zur einfacheren Bedienung der Winkelfunktionen das Grad-Zeichen `°` angehängt werden. z.B:
+Zahlen koennen mit Zehnerpotenzen und SI-Praefixen eingegeben werden:
 
 ```
-sin(30°)    
-		500m
+1e3       1000
+2.5e-3    0.0025
+3k        3000
+4M        4000000
+6m        0.006
+7u        0.000007
 ```
 
-## 5. Kommentare
-Kommentare, das sind Texte die nicht ausgewertet werden und nur zur Information dienen, kann man mit `//` oder `%` erstellen. Der Kommentar erstreckt sich jeweils bis zum Ende der Zeile, zb:
-
-`l=3.5	// Länge`
-
-
-## 6. Funktionen
-**scicalc** bietet eine Hand voll eingebauter mathematischer Funktionen, die nach Belieben in Formeln eingebaut werden können. Die Syntax lautet:
-funktionsname(Parameter1, Parameter2, Parameter3, ...)
-Siehe Kapitel **Funktionen** weiter unten. 
-	
-	
-## 7. Variablen
-In **scicalc** können Variablen definiert werden. Dazu verwendet man folgende Syntax:
-
-Variable = Ausdruck
-
-Der Name für eine Variable muss mit einem Buchstaben `[a-zA-Z]` oder `_` beginnen, im restlichen Namen sind nur Buchstaben, `_` oder Ziffern `[0-9]` erlaubt. Eine spezielle Variable stellt `$` dar. Darin ist das Ergebnis der letzten Berechnung enthalten.
-
-
-## 8. Konstanten
-Alle physikalischen Konstanten sind in SI-Einheiten gegeben.
-**ACHTUNG:** Konstanten können wie Variablen auch überschieben werden.
-Siehe Kapitel **Konstanten** weiter unten. 
-
-
-## 9. Einheiten
-Durch das Zeichen # kann dem Ergebnis eine Einheit hinzugefügt werden. zb:
-```
-F=3 #N
-			3.00N
-```
-**ACHTUNG:** Dies dient lediglich der Formattierung der Ausgabe und hat keinen Einfluss auf Variablen. **scicalc** verfügt über kein Einheitensystem.
-
-
-## 10. Speichern und Laden
-**scicalc** ist bemüht einen möglichsten komfortablen Umgang mit Dateien zu gewährleisten. Das bedeutet einserseits den Arbeitsfluss nicht durch permanentes Nachfragen zu unterbrechen und andererseits Datenverlust zu vermeiden. **scicalc** bietet daher die Option des automatischen Speicherns beim Beenden und des automatischen Ladens der letzten Datei beim Starten. Testen Sie die Optionen im Settings-Menü!
-
-
-## 11. Wofür ist scicalc nicht gedacht:
-* **scicalc** ist ein Taschenrechner und keine Programmiersprache, deshalb ist die Behandlung von Steueranweisungen (Verzweigungen, Schleifen, ... nicht vorgesehen.
-* Funktionen können nicht selbst definiert werden. (nur durch ändern des Quellcodes)
-* **scicalc** kann nur mit reellen Zahlen rechnen.
-* **scicalc** kann nur mit Skalaren rechnen, Vektoren und Matrizen sind nicht erlaubt.
-* **scicalc** ist ein numerischer Rechner, es kann nicht mit symbolischen Ausdrücken rechnen, sofern diesen noch kein Wert zugewiesen wurde.
-
-
-## 12. Accounting-Modus
-Im Einstellungsdialog (General Settings) kann ein Accounting-Modus aktiviert werden. Beginnt eine Zeile im Editor mit `+`, `-`, `*`, `/` oder `^`, wird in diesem Modus automatisch das Ergebnis der vorigen berechneten Zeile vorangestellt. Auf diese Weise lassen sich lange Berechnungsketten komfortabel erstellen, ohne bereits geschriebene Ergebnisse kopieren zu müssen. Leere Zeilen sowie Kommentarzeilen werden dabei übersprungen.
-
-
-## 13. Temporäre Skripteinstellungen
-Für portierbare Skripte können wichtige Anzeigeoptionen direkt im Dokument gesetzt werden. Dafür stehen spezielle Funktionen zur Verfügung, die je Skriptausführung genau einmal aufgerufen werden dürfen:
+Das Gradzeichen wandelt Winkelwerte in Radiant um:
 
 ```
-setDigits(n)         Anzahl signifikanter Stellen temporär festlegen (1 ≤ n ≤ 15)
-setTrailingZeros(b)  Ausgabe mit (b=1) bzw. ohne (b=0) abschließende Nullen erzwingen
-setAccounting(b)     Accounting-Modus per Skript aktivieren (b=1) oder deaktivieren (b=0)
+sin(30°)
+        500m
 ```
 
-Die Änderungen wirken nur bis zur nächsten Aktualisierung (Refresh) und werden nicht dauerhaft gespeichert. Wird eine Funktion mehrfach aufgerufen oder ein ungültiger Wert übergeben, meldet **scicalc** den Fehler direkt in der Ausgabe.
-
-
-# Funktionen in scicalc
+Mit `#` kann eine Ausgabeeinheit angehaengt werden:
 
 ```
-sqrt      Quadratwurzel
-exp       Exponentialfunktion (e^ )
-log       natürlicher Logarithmus
-ln        --||--
-log10     dekadischer Logarithmus
-sin       Sinusfunktion (mit Radiant)
-cos       Cosinusfunktion (mit Radiant)
-tan       Tangensfunktion (mit Radiant)
-asin      Arcussinusfunktion (ergibt Radiant)
-acos      Arcuscosinusfunktion (ergibt Radiant)
-atan      Arcustangensfunktion (ergibt Radiant)
-atan2     verbesserte Arcustangensfunktion (Gegenkathete, Ankathete)
-abs       Betragsfunktion
-rad2deg   Umrechnung von Radiant auf Grad
-
-
-setDigits         Steuerung der Ausgabepräzision (siehe Abschnitt 13)
-setTrailingZeros  Ein-/Ausschalten der Ausgabe mit führenden Nullen (siehe Abschnitt 13)
-setAccounting     Accounting-Modus per Skript aktivieren (siehe Abschnitt 13)
+force=3 #N
+        3N
+resistance=470 #Ohm
+        470Ω
 ```
 
-# Konstanten in scicalc
+Einheiten sind reine Ausgabeformatierung und kein Einheitensystem. `#Ohm` wird
+in der Ausgabe als `Ω` dargestellt.
+
+## 4. Kommentare
+
+Kommentare beginnen mit `//` oder `%` und gelten bis zum Ende der Zeile.
+
+```
+length=3.5  // Laenge
+% Matlab-artiger Kommentar
+```
+
+## 5. Skalare Ausdruecke
+
+Unterstuetzt werden:
+
+```
++  -  *  /  ^  ()
+```
+
+Die ueblichen Vorrangregeln werden beachtet:
+
+```
+2+3*5^2
+        77
+```
+
+Negative Exponenten muessen geklammert werden:
+
+```
+2^(-3)
+        125m
+```
+
+Der Paralleloperator `||` berechnet Parallelschaltungen:
+
+```
+100||200
+        66.6667
+```
+
+## 6. Variablen und Konstanten
+
+Variablen werden mit `=` gesetzt:
+
+```
+a=3
+b=2*a+1
+b
+        7
+```
+
+`$` enthaelt das Ergebnis der letzten berechneten Zeile.
+
+Vordefinierte Konstanten:
+
 ```
 pi      Kreiszahl
 
 _g      Erdbeschleunigung
 _G      Gravitationskonstante
-	
-_mu0    Permeabilität des Vakuums
-_eps0   Permittivität des Vakuums
+
+_mu0    Permeabilitaet des Vakuums
+_eps0   Permittivitaet des Vakuums
 _c0     Lichtgeschwindigkeit im Vakuum
 _e      Elementarladung
 
 _kB     Boltzmann-Konstante
-
-_h      Plank'sches Wirkungsquantum
+_h      Plancksches Wirkungsquantum
 ```
 
+## 7. Funktionen
 
-# Kompilieren auf Debian und Derivate
 ```
-sudo apt install build-essential qt5-default qt5-doc qt5-doc-html qtcreator git
-cd
-git clone https://github.com/ElektronikNode/scicalc
-mkdir build
-cd build
-qmake ../scicalc
-qmake
+sqrt(x)             Quadratwurzel
+exp(x)              Exponentialfunktion
+log(x), ln(x)       natuerlicher Logarithmus
+log10(x)            dekadischer Logarithmus
+ceil(x)             Aufrunden
+floor(x)            Abrunden
+sin(x), cos(x)      Winkelfunktionen in Radiant
+tan(x)
+asin(x), acos(x)    inverse Winkelfunktionen in Radiant
+atan(x), atan2(y,x)
+abs(x)              Betrag
+rad2deg(x)          Radiant nach Grad
+inv(A)              Matrix invertieren
+getVersion()        scicalc-Version ausgeben
 ```
 
+Skriptweite Anzeigeoptionen:
 
-# Lizenz
-Autor: Friedrich Feichtinger  
-https://github.com/feichtinger  
-https://github.com/organizations/ElektronikNode  
-Datum: 12.3.2013
+```
+setDigits(n)         Anzahl signifikanter Stellen temporaer festlegen (1..15)
+setTrailingZeros(b)  abschliessende Nullen ein-/ausschalten (0 oder 1)
+setAccounting(b)     Accounting-Modus temporaer ein-/ausschalten (0 oder 1)
+```
 
-**scicalc** ist open-source und wird unter der GNU GPL V2 veröffentlicht. Sie können dieses Programm kostenlos verwenden.
-**scicalc** befindet sich noch in der Entwicklungsphase, daher bin ich für jeden Tester dankbar. Bitte teilen Sie mir Ihre Erfahrungen mit und geben Sie **scicalc** weiter! Wenn Sie selbst Änderungen am Programmcode vornehmen so lade ich Sie ein, diese Änderungen mit mir zu teilen.
+Diese Funktionen koennen je Refresh einmal verwendet werden.
 
-Verwenden Sie den Rechner auf eigenes Risiko. Programmier- und Rechenfehler können nicht ausgeschlossen werden.
+## 8. Vektoren und Matrizen
+
+Matrix- und Vektorwerte verwenden ein Matlab-aehnliches Literalformat:
+
+```
+[1 2 3]          Zeilenvektor
+[1; 2; 3]        Spaltenvektor
+[1 2; 3 4]       2x2-Matrix
+[1, 2; 3, 4]     Kommas als Spaltentrenner
+```
+
+Ranges erzeugen Zeilenvektoren:
+
+```
+1:5
+        [1 2 3 4 5]
+1:2:9
+        [1 3 5 7 9]
+5:-2:1
+        [5 3 1]
+```
+
+Unterstuetzte Matrixoperatoren:
+
+```
+A+B      elementweise Addition, mit Skalar-Broadcast
+A-B      elementweise Subtraktion, mit Skalar-Broadcast
+A*B      Matrixmultiplikation
+A/2      Matrix durch Skalar
+A/B      A * inv(B)
+A.*B     elementweise Multiplikation
+A./B     elementweise Division
+A.^B     elementweise Potenz
+A'       Transponieren
+inv(A)   Invertieren quadratischer Matrizen
+```
+
+Mehrzeilige Matrizen werden spaltenweise ausgerichtet und mit einem Rahmen
+angezeigt:
+
+```
+matrixA=[1 2; 3 4]
+        ⎡ 1 2 ⎤
+        ⎣ 3 4 ⎦
+```
+
+scicalc-Suffixe bleiben auch in Matrizen aktiv:
+
+```
+matrixA/2
+        ⎡ 500m 1 ⎤
+        ⎣  1.5 2 ⎦
+```
+
+Noch nicht implementiert sind Matrixpotenzen mit `^`, Indexzugriffe wie
+`A(1,2)` und linke Matrixdivision `\`.
+
+## 9. Accounting-Modus
+
+Im Einstellungsdialog kann ein Accounting-Modus aktiviert werden. Beginnt eine
+Zeile mit `+`, `-`, `*`, `/` oder `^`, wird das Ergebnis der vorherigen
+berechneten Zeile automatisch vorangestellt. Leere Zeilen und Kommentare werden
+uebersprungen.
+
+## 10. Speichern und Laden
+
+scicalc kann Skripte speichern und laden. Optional kann beim Beenden automatisch
+gespeichert und beim Start die letzte Datei geladen werden.
+
+## 11. Demo- und Testdateien
+
+```
+test-demo.sc    anschauliche Demo der wichtigsten Funktionen
+test-cases.sc   Regressionstest mit Erfolgs- und Fehlerfaellen
+```
+
+## 12. Bauen
+
+Ab Version 2.0 wird CMake verwendet. Unter Debian/Ubuntu:
+
+```
+sudo apt install build-essential cmake qtbase5-dev libeigen3-dev
+cmake -S . -B build
+cmake --build build
+```
+
+Die ausfuehrbare Datei liegt danach unter:
+
+```
+build/scicalc
+```
+
+Die Buildnummer wird bei jedem Build automatisch erhoeht. `getVersion()` zeigt
+die Version inklusive dreistelliger Buildnummer an, z.B. `2.0.0-###`.
+
+## 13. Debian-Paket
+
+Ein Debian-Paket kann mit CPack erzeugt werden:
+
+```
+cpack --config build/CPackConfig.cmake
+```
+
+Das Paket wird im Unterverzeichnis `debian/` abgelegt. Es installiert:
+
+```
+/usr/bin/scicalc
+/usr/share/applications/scicalc.desktop
+/usr/share/icons/hicolor/scalable/apps/scicalc.svg
+/usr/share/pixmaps/scicalc.png
+```
+
+## 14. Grenzen
+
+scicalc ist ein numerischer Rechner. Nicht vorgesehen sind derzeit:
+
+* symbolische Mathematik
+* eigene Funktionen im Skript
+* Kontrollstrukturen wie Schleifen oder Verzweigungen
+* komplexe Zahlen
+* Matrix-Indexzugriffe und linke Matrixdivision
+
+# Autoren und Lizenz
+
+Autoren:
+
+* Friedrich Feichtinger
+* Karl Zeilhofer
+
+scicalc wird unter der GNU GPL V2 veroeffentlicht. Verwenden Sie den Rechner
+auf eigenes Risiko; Programmier- und Rechenfehler koennen nicht ausgeschlossen
+werden.

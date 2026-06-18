@@ -10,6 +10,7 @@
  */
 
 #include "token.h"
+#include "value.h"
 #include <QStringList>
 
 
@@ -30,16 +31,35 @@ private:
 
 	static QString assignedVariable;
 
-	static long double Power();
-	static long double Factor();
-	static long double Parallel();
-	static long double Term();
-	static long double Expression();
-	static long double Assignment();
-	static long double Function();
+	static Value Power();
+	static Value Factor();
+	static Value Parallel();
+	static Value Term();
+	static Value Expression();
+	static Value Range();
+	static Value Assignment();
+	static Value Function();
+	static Value MatrixLiteral();
+	static bool VersionFunction(QString *output);
 	
 	
 	static long double divide(long double dividend, long double divisor);
+	static long double requireScalar(Value value, QString context);
+	static QString formatValue(Value value);
+	static bool isExpressionStart(Token::Kind kind);
+	static void requireSameSize(Value left, Value right, QString op);
+	static Value elementWise(Value left, Value right, Token::Kind op);
+	static Value add(Value left, Value right);
+	static Value subtract(Value left, Value right);
+	static Value multiply(Value left, Value right);
+	static Value divide(Value left, Value right);
+	static Value power(Value left, Value right);
+	static Value parallel(Value left, Value right);
+	static Value range(Value start, Value end);
+	static Value range(Value start, Value step, Value end);
+	static Value inverse(Value value);
+	static Value transpose(Value value);
+	static Value negate(Value value);
 
 	static void check(Token::Kind expected);
 
