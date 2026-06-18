@@ -3,10 +3,16 @@
 Value::Value()
 {
 	valueType=Scalar;
-	scalarValue=0;
+	scalarValue=Number(0, 0);
 }
 
 Value::Value(long double scalar)
+{
+	valueType=Scalar;
+	scalarValue=Number(scalar, 0);
+}
+
+Value::Value(Number scalar)
 {
 	valueType=Scalar;
 	scalarValue=scalar;
@@ -15,7 +21,7 @@ Value::Value(long double scalar)
 Value::Value(Matrix matrix)
 {
 	valueType=MatrixValue;
-	scalarValue=0;
+	scalarValue=Number(0, 0);
 	matrixValue=matrix;
 }
 
@@ -34,7 +40,7 @@ bool Value::isMatrix() const
 	return valueType==MatrixValue;
 }
 
-long double Value::scalar() const
+Value::Number Value::scalar() const
 {
 	return scalarValue;
 }
@@ -66,7 +72,7 @@ int Value::columns() const
 	return matrixValue.at(0).size();
 }
 
-long double Value::at(int row, int column) const
+Value::Number Value::at(int row, int column) const
 {
 	if(isScalar())
 	{

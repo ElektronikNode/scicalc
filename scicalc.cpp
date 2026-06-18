@@ -65,7 +65,7 @@ scicalc::scicalc(QMainWindow *parent) :
 	currentFile=set.value("recentfile", QString("")).toString();
 	
 	// check if there is a filename given as parameter, open this file
-	if(QApplication::arguments().size()==2)
+	if(QApplication::arguments().size()==2 && !QCoreApplication::instance()->property("scicalcCliMode").toBool())
 	{
 		currentFile=QApplication::arguments().at(1);
 		load(currentFile);
@@ -457,6 +457,16 @@ bool scicalc::setTemporaryAccounting(bool enabled)
 	temporaryAccounting=enabled;
 	temporaryAccountingActive=true;
 	return true;
+}
+
+void scicalc::resetTemporarySettings()
+{
+	temporaryDigitsActive=false;
+	temporaryTrailingZerosActive=false;
+	temporaryAccountingActive=false;
+	temporaryDigits=dialogGeneralSettings->getDigits();
+	temporaryTrailingZeros=dialogGeneralSettings->getTrailingZeros();
+	temporaryAccounting=dialogGeneralSettings->getAccountingMode();
 }
 
 

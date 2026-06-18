@@ -350,7 +350,8 @@ void ScicalcEdit::updateCompletionModel()
 		QString value;
 		if(var->value.isScalar())
 		{
-			value=Print::sciPrint(var->value.scalar()) + var->unit;
+			bool complex=var->value.scalar().imag()!=0;
+			value=Print::complexPrint(var->value.scalar(), complex && !var->unit.isEmpty()) + var->unit;
 		}
 		else
 		{

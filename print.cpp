@@ -6,28 +6,42 @@
 
 #include <cmath>
 #include <QDebug>
-#include <stdint.h>
 
 #include "print.h"
 #include "scicalc.h"
 
-
-QString Print::sciPrint(double value)
+namespace
 {
+	long double cleanPart(long double value)
+	{
+		long double rounded=roundl(value);
+		if(rounded!=0 && fabsl(value-rounded)<1e-12L)
+		{
+			return rounded;
+		}
+
+		return value;
+	}
+}
+
+QString Print::sciPrint(long double value)
+{
+	value=cleanPart(value);
+	if(std::isnan(value))
+	{
+		return "nan";
+	}
+	if(std::isinf(value))
+	{
+		return value<0 ? "-inf" : "inf";
+	}
 
 	int digits=scicalc::app()->getDigitsSetting();
 	bool showZeros=scicalc::app()->getTrailingZerosSetting();
 	QString output;
 
-
-	//printf(" start sciPrint ...\n");
-
 	int exp;				// 10 base of value
 	int exp3;				// 1000 base of value
-
-	int64_t rndValue;		// rounded value
-	int64_t intValue;		// integer part of value
-	int64_t fracValue;		// fractional part of value
 
 	int intDigits;			// number of integer digits
 	int fracDigits;			// number of fractional digits
@@ -47,47 +61,21 @@ QString Print::sciPrint(double value)
 	//qDebug() << "exp:" << exp;
 	//qDebug() << "exp3:" << exp3;
 
-	// transform the value to an integer format and round it
-	rndValue=(int64_t)round(value*pow10(digits-1-exp));
-
-	//qDebug() << "factor:" << pow10(digits-1-exp);
-	//qDebug() << "rndValue:" << rndValue;
+	long double scaled=value/pow10(3*exp3);
 
 	// get number of integer digits
 	intDigits=exp-3*exp3+1;
 	//qDebug() << "intDigits:" << intDigits;
 
-	// get the integer part of value
-	intValue=rndValue/pow10(digits-intDigits);
-
-	// print integer part
-	//qDebug() << "intValue:" << intValue;
-	output=QString::number(intValue);
-
-
 	// get number of digits of fractional part
 	fracDigits=std::max(digits-intDigits, 0);
-
-	// get fractional part of value
-	fracValue=fabs(rndValue % (int64_t)pow10(fracDigits));
-
-	if(intDigits<digits && (fracValue!=0 || showZeros))
+	if(showZeros)
 	{
-		// we need some fractional digits
-		//System.out.print(".");
-		output+=".";
-
-		for(int64_t base=pow10(fracDigits-1); base>0; base/=10)
-		{
-			//qDebug() << "digit:" << (fracValue/base);
-			output+=QString::number(fracValue/base);
-			fracValue%=base;
-			//qDebug() << "fracValue:" << fracValue;
-			if(fracValue==0 && !showZeros)
-			{
-				break;
-			}
-		}
+		output=QString::number(static_cast<double>(scaled), 'f', fracDigits);
+	}
+	else
+	{
+		output=QString::number(static_cast<double>(scaled), 'g', digits);
 	}
 
 	// print scientific prefix
@@ -119,6 +107,34 @@ QString Print::sciPrint(double value)
 
 	//printf("sciPrint ... complete\n");
 
+	return output;
+}
+
+QString Print::complexPrint(std::complex<long double> value, bool parenthesize)
+{
+	long double real=cleanPart(value.real());
+	long double imag=cleanPart(value.imag());
+
+	if(imag==0)
+	{
+		return sciPrint(real);
+	}
+
+	QString output;
+	if(real==0)
+	{
+		output=sciPrint(imag) + "j";
+	}
+	else
+	{
+		QString sign=imag<0 ? "-" : "+";
+		output=sciPrint(real) + sign + sciPrint(fabsl(imag)) + "j";
+	}
+
+	if(parenthesize)
+	{
+		output="(" + output + ")";
+	}
 	return output;
 }
 

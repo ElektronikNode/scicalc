@@ -14,30 +14,67 @@
 #include "scicalc.h"
 
 #include <cmath>
+#include <complex>
 #include <QList>
 #include <QDebug>
 #include <Eigen/Dense>
 
 namespace
 {
-	long double fnSqrt(long double value) { return sqrtl(value); }
-	long double fnExp(long double value) { return expl(value); }
-	long double fnLog(long double value) { return logl(value); }
-	long double fnLog10(long double value) { return log10l(value); }
-	long double fnCeil(long double value) { return ceill(value); }
-	long double fnFloor(long double value) { return floorl(value); }
-	long double fnRound(long double value) { return roundl(value); }
-	long double fnSin(long double value) { return sinl(value); }
-	long double fnCos(long double value) { return cosl(value); }
-	long double fnTan(long double value) { return tanl(value); }
-	long double fnAsin(long double value) { return asinl(value); }
-	long double fnAcos(long double value) { return acosl(value); }
-	long double fnAtan(long double value) { return atanl(value); }
-	long double fnAbs(long double value) { return fabsl(value); }
-	long double fnRad2Deg(long double value) { return value*180/M_PI; }
-	long double fnAtan2(long double y, long double x) { return atan2l(y, x); }
+	typedef Value::Number Number;
 
-	long double cleanNumber(long double value)
+	Number cleanNumber(Number value);
+
+	bool isZero(Number value)
+	{
+		return value.real()==0 && value.imag()==0;
+	}
+
+	bool isReal(Number value)
+	{
+		return value.imag()==0;
+	}
+
+	bool hasNaN(Number value)
+	{
+		return std::isnan(value.real()) || std::isnan(value.imag());
+	}
+
+	long double requireRealNumber(Number value, QString context)
+	{
+		value=cleanNumber(value);
+		if(!isReal(value))
+		{
+			throw ParseException(context + " expects real values");
+		}
+		return value.real();
+	}
+
+	Number fnSqrt(Number value) { return std::sqrt(value); }
+	Number fnExp(Number value) { return std::exp(value); }
+	Number fnLog(Number value) { return std::log(value); }
+	Number fnLog10(Number value) { return std::log(value)/std::log(Number(10, 0)); }
+	Number fnCeil(Number value) { return Number(ceill(value.real()), ceill(value.imag())); }
+	Number fnFloor(Number value) { return Number(floorl(value.real()), floorl(value.imag())); }
+	Number fnRound(Number value) { return Number(roundl(value.real()), roundl(value.imag())); }
+	Number fnSin(Number value) { return std::sin(value); }
+	Number fnCos(Number value) { return std::cos(value); }
+	Number fnTan(Number value) { return std::tan(value); }
+	Number fnAsin(Number value) { return std::asin(value); }
+	Number fnAcos(Number value) { return std::acos(value); }
+	Number fnAtan(Number value) { return std::atan(value); }
+	Number fnAbs(Number value) { return Number(std::abs(value), 0); }
+	Number fnReal(Number value) { return Number(value.real(), 0); }
+	Number fnImag(Number value) { return Number(value.imag(), 0); }
+	Number fnConj(Number value) { return std::conj(value); }
+	Number fnAngle(Number value) { return Number(std::arg(value), 0); }
+	Number fnRad2Deg(Number value) { return value*Number(180/M_PI, 0); }
+	Number fnAtan2(Number y, Number x)
+	{
+		return Number(atan2l(requireRealNumber(y, "atan2"), requireRealNumber(x, "atan2")), 0);
+	}
+
+	long double cleanPart(long double value)
 	{
 		if(fabsl(value)<1e-12L)
 		{
@@ -53,20 +90,26 @@ namespace
 		return value;
 	}
 
-	Eigen::MatrixXd toEigen(Value value)
+	Number cleanNumber(Number value)
 	{
-		Eigen::MatrixXd matrix(value.rows(), value.columns());
+		return Number(cleanPart(value.real()), cleanPart(value.imag()));
+	}
+
+	Eigen::MatrixXcd toEigen(Value value)
+	{
+		Eigen::MatrixXcd matrix(value.rows(), value.columns());
 		for(int r=0; r<value.rows(); r++)
 		{
 			for(int c=0; c<value.columns(); c++)
 			{
-				matrix(r, c)=static_cast<double>(value.at(r, c));
+				Number cell=value.at(r, c);
+				matrix(r, c)=std::complex<double>(static_cast<double>(cell.real()), static_cast<double>(cell.imag()));
 			}
 		}
 		return matrix;
 	}
 
-	Value fromEigen(const Eigen::MatrixXd &matrix)
+	Value fromEigen(const Eigen::MatrixXcd &matrix)
 	{
 		Value::Matrix result;
 		for(int r=0; r<matrix.rows(); r++)
@@ -74,7 +117,8 @@ namespace
 			Value::Row row;
 			for(int c=0; c<matrix.cols(); c++)
 			{
-				row.append(cleanNumber(matrix(r, c)));
+				std::complex<double> cell=matrix(r, c);
+				row.append(cleanNumber(Number(cell.real(), cell.imag())));
 			}
 			result.append(row);
 		}
@@ -134,17 +178,19 @@ QString Parser::parse()
 				}
 				else
 				{
-					output=formatValue(value);
-					
 					// append unit
 					if(sym==Token::unit)
 					{
 						check(Token::unit);
-						output+=t->string;
+						output=formatValue(value, t->string);
 						if(!assignedVariable.isEmpty())
 						{
 							Variables::set(assignedVariable, value, t->string);
 						}
+					}
+					else
+					{
+						output=formatValue(value);
 					}
 				}
 				check(Token::eof);
@@ -178,6 +224,10 @@ QStringList Parser::functionNames()
 		<< "atan"
 		<< "atan2"
 		<< "abs"
+		<< "real"
+		<< "imag"
+		<< "conj"
+		<< "angle"
 		<< "rad2deg"
 		<< "getVersion"
 		<< "setDigits"
@@ -208,7 +258,16 @@ Value Parser::Power()
 	else if(sym==Token::number)
 	{
 		check(Token::number);
-		value=Value(t->value);
+		Value::Number number(t->value, 0);
+		if(t->string=="imaginarySuffix" && sym==Token::ident && isImaginaryUnit(la->string))
+		{
+			check(Token::ident);
+			value=Value(number*Value::Number(0, 1));
+		}
+		else
+		{
+			value=Value(number);
+		}
 	}
 	else if(sym==Token::lpar)
 	{
@@ -433,11 +492,15 @@ Value Parser::Function()
 	else if(fun=="atan"){	n=1;	value=mapUnary(args.value(0), fnAtan, fun);}
 	else if(fun=="atan2"){	n=2;	value=mapBinary(args.value(0), args.value(1), fnAtan2, fun);}
 	else if(fun=="abs"){	n=1;	value=mapUnary(args.value(0), fnAbs, fun);}
+	else if(fun=="real"){	n=1;	value=mapUnary(args.value(0), fnReal, fun);}
+	else if(fun=="imag"){	n=1;	value=mapUnary(args.value(0), fnImag, fun);}
+	else if(fun=="conj"){	n=1;	value=mapUnary(args.value(0), fnConj, fun);}
+	else if(fun=="angle"){	n=1;	value=mapUnary(args.value(0), fnAngle, fun);}
 	else if(fun=="rad2deg"){n=1;	value=mapUnary(args.value(0), fnRad2Deg, fun);}
 	else if(fun=="setDigits")
 	{
 		n=1;
-		long double arg=requireScalar(args.value(0), fun);
+		long double arg=requireRealScalar(args.value(0), fun);
 		int digits=static_cast<int>(arg);
 		if(arg!=digits)
 		{
@@ -456,7 +519,7 @@ Value Parser::Function()
 	else if(fun=="setTrailingZeros")
 	{
 		n=1;
-		long double arg=requireScalar(args.value(0), fun);
+		long double arg=requireRealScalar(args.value(0), fun);
 		int flag=static_cast<int>(arg);
 		if(arg!=flag || (flag!=0 && flag!=1))
 		{
@@ -471,7 +534,7 @@ Value Parser::Function()
 	else if(fun=="setAccounting")
 	{
 		n=1;
-		long double arg=requireScalar(args.value(0), fun);
+		long double arg=requireRealScalar(args.value(0), fun);
 		int flag=static_cast<int>(arg);
 		if(arg!=flag || (flag!=0 && flag!=1))
 		{
@@ -493,7 +556,7 @@ Value Parser::Function()
 		throw ParseException("invalid number of arguments for function '"+fun+"'");
 	}
 
-	if(value.isScalar() && value.scalar()!=value.scalar())		// isnan(value) does only work with C++11
+	if(value.isScalar() && hasNaN(value.scalar()))
 	{
 		throw ParseException("function '"+fun+"' returned NaN");
 	}
@@ -612,19 +675,17 @@ Value Parser::MatrixLiteral()
 }
 
 
-long double Parser::divide(long double dividend, long double divisor)
+Value::Number Parser::divide(Value::Number dividend, Value::Number divisor)
 {
-	if(divisor!=0)
+	if(!isZero(cleanNumber(divisor)))
 	{
 		return dividend/divisor;
 	}
-	else
-	{
-		throw ParseException("division by zero");
-	}
+
+	throw ParseException("division by zero");
 }
 
-long double Parser::requireScalar(Value value, QString context)
+Value::Number Parser::requireScalar(Value value, QString context)
 {
 	if(!value.isScalar())
 	{
@@ -633,16 +694,22 @@ long double Parser::requireScalar(Value value, QString context)
 	return value.scalar();
 }
 
-QString Parser::formatValue(Value value)
+long double Parser::requireRealScalar(Value value, QString context)
+{
+	return requireRealNumber(requireScalar(value, context), context);
+}
+
+QString Parser::formatValue(Value value, QString unit)
 {
 	if(value.isScalar())
 	{
-		return Print::sciPrint(value.scalar());
+		bool complex=!isReal(cleanNumber(value.scalar()));
+		return Print::complexPrint(value.scalar(), complex && !unit.isEmpty()) + unit;
 	}
 
 	if(value.rows()==0 || value.columns()==0)
 	{
-		return "[]";
+		return "[]" + unit;
 	}
 
 	QList<QStringList> formattedRows;
@@ -657,7 +724,7 @@ QString Parser::formatValue(Value value)
 		QStringList formattedColumns;
 		for(int c=0; c<value.columns(); c++)
 		{
-			QString cell=Print::sciPrint(cleanNumber(value.at(r, c)));
+			QString cell=Print::complexPrint(cleanNumber(value.at(r, c)));
 			formattedColumns.append(cell);
 			if(cell.length()>columnWidths[c])
 			{
@@ -674,7 +741,7 @@ QString Parser::formatValue(Value value)
 		{
 			columns.append(formattedRows.at(0).at(c).rightJustified(columnWidths.at(c), ' '));
 		}
-		return "[" + columns.join(" ") + "]";
+		return "[" + columns.join("  ") + "]" + unit;
 	}
 
 	QStringList rows;
@@ -697,15 +764,20 @@ QString Parser::formatValue(Value value)
 			leftBracket="⎣";
 			rightBracket="⎦";
 		}
-		rows.append(leftBracket + " " + columns.join(" ") + " " + rightBracket);
+		rows.append(leftBracket + " " + columns.join("  ") + " " + rightBracket);
 	}
-	return rows.join("\n");
+	return rows.join("\n") + unit;
 }
 
 bool Parser::isExpressionStart(Token::Kind kind)
 {
 	return kind==Token::ident || kind==Token::number || kind==Token::lpar ||
 		kind==Token::lsquare || kind==Token::plus || kind==Token::minus;
+}
+
+bool Parser::isImaginaryUnit(QString name)
+{
+	return name=="i" || name=="j";
 }
 
 void Parser::requireSameSize(Value left, Value right, QString op)
@@ -729,7 +801,7 @@ Value Parser::elementWise(Value left, Value right, Token::Kind op)
 			case Token::slash:
 			case Token::dotSlash:	return Value(cleanNumber(divide(left.scalar(), right.scalar())));
 			case Token::hat:
-			case Token::dotHat:		return Value(cleanNumber(pow(left.scalar(), right.scalar())));
+			case Token::dotHat:		return Value(cleanNumber(std::pow(left.scalar(), right.scalar())));
 			default:				throw ParseException("unsupported element-wise operator");
 		}
 	}
@@ -747,8 +819,8 @@ Value Parser::elementWise(Value left, Value right, Token::Kind op)
 		Value::Row row;
 		for(int c=0; c<columns; c++)
 		{
-			long double l=left.isScalar() ? left.scalar() : left.at(r, c);
-			long double rr=right.isScalar() ? right.scalar() : right.at(r, c);
+			Value::Number l=left.isScalar() ? left.scalar() : left.at(r, c);
+			Value::Number rr=right.isScalar() ? right.scalar() : right.at(r, c);
 			switch(op)
 			{
 				case Token::plus:		row.append(cleanNumber(l + rr)); break;
@@ -758,7 +830,7 @@ Value Parser::elementWise(Value left, Value right, Token::Kind op)
 				case Token::slash:
 				case Token::dotSlash:	row.append(cleanNumber(divide(l, rr))); break;
 				case Token::hat:
-				case Token::dotHat:		row.append(cleanNumber(pow(l, rr))); break;
+				case Token::dotHat:		row.append(cleanNumber(std::pow(l, rr))); break;
 				default:				throw ParseException("unsupported element-wise operator");
 			}
 		}
@@ -795,7 +867,7 @@ Value Parser::multiply(Value left, Value right)
 		Value::Row row;
 		for(int c=0; c<right.columns(); c++)
 		{
-			long double sum=0;
+			Value::Number sum(0, 0);
 			for(int k=0; k<left.columns(); k++)
 			{
 				sum+=left.at(r, k)*right.at(k, c);
@@ -820,15 +892,15 @@ Value Parser::power(Value left, Value right)
 {
 	if(left.isScalar() && right.isScalar())
 	{
-		return Value(pow(left.scalar(), right.scalar()));
+		return Value(cleanNumber(std::pow(left.scalar(), right.scalar())));
 	}
 	throw ParseException("matrix power is not implemented; use '.^' for element-wise powers");
 }
 
 Value Parser::parallel(Value left, Value right)
 {
-	long double l=requireScalar(left, "parallel operator");
-	long double r=requireScalar(right, "parallel operator");
+	Value::Number l=requireScalar(left, "parallel operator");
+	Value::Number r=requireScalar(right, "parallel operator");
 	return Value(divide(l*r, l+r));
 }
 
@@ -839,9 +911,9 @@ Value Parser::range(Value start, Value end)
 
 Value Parser::range(Value start, Value step, Value end)
 {
-	long double startValue=requireScalar(start, "range operator");
-	long double stepValue=requireScalar(step, "range operator");
-	long double endValue=requireScalar(end, "range operator");
+	long double startValue=requireRealScalar(start, "range operator");
+	long double stepValue=requireRealScalar(step, "range operator");
+	long double endValue=requireRealScalar(end, "range operator");
 
 	if(stepValue==0)
 	{
@@ -874,7 +946,7 @@ Value Parser::inverse(Value value)
 {
 	if(value.isScalar())
 	{
-		return Value(divide(1, value.scalar()));
+		return Value(divide(Value::Number(1, 0), value.scalar()));
 	}
 
 	if(value.rows()!=value.columns())
@@ -886,8 +958,8 @@ Value Parser::inverse(Value value)
 		throw ParseException("inv expects a non-empty matrix");
 	}
 
-	Eigen::MatrixXd matrix=toEigen(value);
-	Eigen::FullPivLU<Eigen::MatrixXd> decomposition(matrix);
+	Eigen::MatrixXcd matrix=toEigen(value);
+	Eigen::FullPivLU<Eigen::MatrixXcd> decomposition(matrix);
 	if(!decomposition.isInvertible())
 	{
 		throw ParseException("matrix is singular");
@@ -900,7 +972,7 @@ Value Parser::transpose(Value value)
 {
 	if(value.isScalar())
 	{
-		return value;
+		return Value(std::conj(value.scalar()));
 	}
 
 	Value::Matrix result;
@@ -909,7 +981,7 @@ Value Parser::transpose(Value value)
 		Value::Row row;
 		for(int r=0; r<value.rows(); r++)
 		{
-			row.append(value.at(r, c));
+			row.append(std::conj(value.at(r, c)));
 		}
 		result.append(row);
 	}
@@ -921,12 +993,12 @@ Value Parser::negate(Value value)
 	return elementWise(Value(-1), value, Token::times);
 }
 
-Value Parser::mapUnary(Value value, long double (*function)(long double), QString context)
+Value Parser::mapUnary(Value value, Value::Number (*function)(Value::Number), QString context)
 {
 	if(value.isScalar())
 	{
-		long double result=cleanNumber(function(value.scalar()));
-		if(result!=result)
+		Value::Number result=cleanNumber(function(value.scalar()));
+		if(hasNaN(result))
 		{
 			throw ParseException("function '"+context+"' returned NaN");
 		}
@@ -939,8 +1011,8 @@ Value Parser::mapUnary(Value value, long double (*function)(long double), QStrin
 		Value::Row row;
 		for(int c=0; c<value.columns(); c++)
 		{
-			long double cell=cleanNumber(function(value.at(r, c)));
-			if(cell!=cell)
+			Value::Number cell=cleanNumber(function(value.at(r, c)));
+			if(hasNaN(cell))
 			{
 				throw ParseException("function '"+context+"' returned NaN");
 			}
@@ -951,12 +1023,12 @@ Value Parser::mapUnary(Value value, long double (*function)(long double), QStrin
 	return Value(result);
 }
 
-Value Parser::mapBinary(Value left, Value right, long double (*function)(long double, long double), QString context)
+Value Parser::mapBinary(Value left, Value right, Value::Number (*function)(Value::Number, Value::Number), QString context)
 {
 	if(left.isScalar() && right.isScalar())
 	{
-		long double result=cleanNumber(function(left.scalar(), right.scalar()));
-		if(result!=result)
+		Value::Number result=cleanNumber(function(left.scalar(), right.scalar()));
+		if(hasNaN(result))
 		{
 			throw ParseException("function '"+context+"' returned NaN");
 		}
@@ -976,10 +1048,10 @@ Value Parser::mapBinary(Value left, Value right, long double (*function)(long do
 		Value::Row row;
 		for(int c=0; c<columns; c++)
 		{
-			long double l=left.isScalar() ? left.scalar() : left.at(r, c);
-			long double rr=right.isScalar() ? right.scalar() : right.at(r, c);
-			long double cell=cleanNumber(function(l, rr));
-			if(cell!=cell)
+			Value::Number l=left.isScalar() ? left.scalar() : left.at(r, c);
+			Value::Number rr=right.isScalar() ? right.scalar() : right.at(r, c);
+			Value::Number cell=cleanNumber(function(l, rr));
+			if(hasNaN(cell))
 			{
 				throw ParseException("function '"+context+"' returned NaN");
 			}

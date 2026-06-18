@@ -13,7 +13,7 @@ public:
 		lsquare, rsquare, colon, dotTimes, dotSlash, dotHat, transpose, eof};
 
 	Kind		kind;		// kind of token
-	double		value;		// token value
+	long double	value;		// token value
 	QString		string; 	// token string
 };
 

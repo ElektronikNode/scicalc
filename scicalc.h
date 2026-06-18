@@ -31,6 +31,7 @@ public:
 		bool setTemporaryDigits(int digits);
 		bool setTemporaryTrailingZeros(bool enabled);
 		bool setTemporaryAccounting(bool enabled);
+		void resetTemporarySettings();
 	
 private slots:	
 	void on_actionNew_triggered();

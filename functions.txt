@@ -17,6 +17,10 @@ acos      Arcuscosinusfunktion (ergibt Radiant)
 atan      Arcustangensfunktion (ergibt Radiant)
 atan2     verbesserte Arcustangensfunktion (Gegenkathete, Ankathete)
 abs       Betragsfunktion
+real      Realteil einer komplexen Zahl
+imag      Imaginaerteil einer komplexen Zahl
+conj      komplex konjugierter Wert
+angle     Phasenwinkel einer komplexen Zahl in Radiant
 rad2deg   Umrechnung von Radiant auf Grad
 getVersion gibt die scicalc-Version aus
 

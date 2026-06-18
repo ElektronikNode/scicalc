@@ -12,8 +12,8 @@ die direkte Arbeitsweise eines Taschenrechners mit der Wiederholbarkeit eines
 kleinen Rechenskripts. Eingaben stehen dauerhaft im Dokument, Ergebnisse werden
 direkt darunter angezeigt.
 
-Seit Version 2.0 unterstuetzt scicalc neben Skalaren auch erste
-Matlab-aehnliche Vektor- und Matrixausdruecke.
+Seit Version 2.1 unterstuetzt scicalc neben Skalaren auch komplexe Zahlen
+sowie Matlab-aehnliche Vektor- und Matrixausdruecke.
 
 ## 2. Bedienung
 
@@ -28,9 +28,9 @@ Matrizen die Dimension.
 
 ## 3. Zahlen und Einheiten
 
-scicalc rechnet numerisch mit reellen Gleitkommazahlen. Als Dezimaltrennzeichen
-werden `.` und `,` akzeptiert. In Matrixliteralen trennt `,` jedoch Spalten,
-damit Matlab-Syntax wie `[1, 2; 3, 4]` funktioniert.
+scicalc rechnet numerisch mit komplexfaehigen Gleitkommazahlen. Als
+Dezimaltrennzeichen werden `.` und `,` akzeptiert. In Matrixliteralen trennt
+`,` jedoch Spalten, damit Matlab-Syntax wie `[1, 2; 3, 4]` funktioniert.
 
 Zahlen koennen mit Zehnerpotenzen und SI-Praefixen eingegeben werden:
 
@@ -61,6 +61,20 @@ resistance=470 #Ohm
 
 Einheiten sind reine Ausgabeformatierung und kein Einheitensystem. `#Ohm` wird
 in der Ausgabe als `Ω` dargestellt.
+
+Komplexe Zahlen verwenden Matlab-aehnlich `i` oder `j` als imaginaere Einheit:
+
+```
+3+4i
+        3+4j
+sqrt(-1)
+        1j
+5k+3mj #V
+        (5k+3mj)V
+```
+
+Kompakte Imaginaersuffixe muessen direkt an der Zahl stehen: `4i` ist komplex,
+`4 i` sind zwei getrennte Matrixelemente innerhalb von `[...]`.
 
 ## 4. Kommentare
 
@@ -145,6 +159,10 @@ tan(x)
 asin(x), acos(x)    inverse Winkelfunktionen in Radiant
 atan(x), atan2(y,x)
 abs(x)              Betrag
+real(x)             Realteil
+imag(x)             Imaginaerteil
+conj(x)             komplex konjugierter Wert
+angle(x)            Phasenwinkel in Radiant
 rad2deg(x)          Radiant nach Grad
 inv(A)              Matrix invertieren
 getVersion()        scicalc-Version ausgeben
@@ -184,11 +202,11 @@ Ranges erzeugen Zeilenvektoren:
 
 ```
 1:5
-        [1 2 3 4 5]
+        [1  2  3  4  5]
 1:2:9
-        [1 3 5 7 9]
+        [1  3  5  7  9]
 5:-2:1
-        [5 3 1]
+        [5  3  1]
 ```
 
 Unterstuetzte Matrixoperatoren:
@@ -202,7 +220,7 @@ A/B      A * inv(B)
 A.*B     elementweise Multiplikation
 A./B     elementweise Division
 A.^B     elementweise Potenz
-A'       Transponieren
+A'       Transponieren, bei komplexen Werten konjugiert-transponieren
 inv(A)   Invertieren quadratischer Matrizen
 ```
 
@@ -211,20 +229,31 @@ angezeigt:
 
 ```
 matrixA=[1 2; 3 4]
-        ⎡ 1 2 ⎤
-        ⎣ 3 4 ⎦
+        ⎡ 1  2 ⎤
+        ⎣ 3  4 ⎦
 ```
 
 scicalc-Suffixe bleiben auch in Matrizen aktiv:
 
 ```
 matrixA/2
-        ⎡ 500m 1 ⎤
-        ⎣  1.5 2 ⎦
+        ⎡ 500m  1 ⎤
+        ⎣  1.5  2 ⎦
 ```
 
 Noch nicht implementiert sind Matrixpotenzen mit `^`, Indexzugriffe wie
 `A(1,2)` und linke Matrixdivision `\`.
+
+Komplexe Matrizen werden ebenfalls unterstuetzt:
+
+```
+A=[1 i; 2 3]
+        ⎡ 1  1j ⎤
+        ⎣ 2   3 ⎦
+A*inv(A)
+        ⎡ 1  0 ⎤
+        ⎣ 0  1 ⎦
+```
 
 ## 9. Accounting-Modus
 
@@ -238,14 +267,27 @@ uebersprungen.
 scicalc kann Skripte speichern und laden. Optional kann beim Beenden automatisch
 gespeichert und beim Start die letzte Datei geladen werden.
 
-## 11. Demo- und Testdateien
+## 11. Kommandozeile
+
+scicalc kann Skripte auch ohne GUI auswerten:
+
+```
+scicalc test-cases.sc
+```
+
+Der CLI-Modus ignoriert gespeicherte Ergebniszeilen, die mit Tab beginnen, und
+schreibt Eingaben plus neu berechnete Ergebnisse im gewohnten scicalc-Stil auf
+stdout. Dadurch koennen Regressionstests direkt ueber die Konsole ausgefuehrt
+werden.
+
+## 12. Demo- und Testdateien
 
 ```
 test-demo.sc    anschauliche Demo der wichtigsten Funktionen
 test-cases.sc   Regressionstest mit Erfolgs- und Fehlerfaellen
 ```
 
-## 12. Bauen
+## 13. Bauen
 
 Ab Version 2.0 wird CMake verwendet. Unter Debian/Ubuntu:
 
@@ -262,9 +304,9 @@ build/scicalc
 ```
 
 Die Buildnummer wird bei jedem Build automatisch erhoeht. `getVersion()` zeigt
-die Version inklusive dreistelliger Buildnummer an, z.B. `2.0.1-###`.
+die Version inklusive dreistelliger Buildnummer an, z.B. `2.1.0-###`.
 
-## 13. Debian-Paket
+## 14. Debian-Paket
 
 Ein Debian-Paket kann mit CPack erzeugt werden:
 
@@ -281,14 +323,13 @@ Das Paket wird im Unterverzeichnis `debian/` abgelegt. Es installiert:
 /usr/share/pixmaps/scicalc.png
 ```
 
-## 14. Grenzen
+## 15. Grenzen
 
 scicalc ist ein numerischer Rechner. Nicht vorgesehen sind derzeit:
 
 * symbolische Mathematik
 * eigene Funktionen im Skript
 * Kontrollstrukturen wie Schleifen oder Verzweigungen
-* komplexe Zahlen
 * Matrix-Indexzugriffe und linke Matrixdivision
 
 # Autoren und Lizenz

@@ -317,6 +317,11 @@ void Scanner::readNumber(Token *t)
 		nextCh();
 	}
 
+	if(ch=='i' || ch=='j')
+	{
+		t->string="imaginarySuffix";
+	}
+
 	t->value=value;
 	//qDebug() << "value scanned" << value;
 }

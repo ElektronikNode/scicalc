@@ -1,6 +1,15 @@
 scicalc changelog
 =================
 
+# V2.1.0
+* Komplexe Zahlen mit `i` und `j`, z.B. `3+4i`, `2j` und `5k+3mj #V`
+* Komplexe Ausgabe mit scicalc-Suffixen, z.B. `(5k + 3mj)V`
+* Komplexe Vektoren und Matrizen inklusive Multiplikation, Transpose und `inv`
+* Mathematische Funktionen arbeiten komplexfaehig und elementweise auf Matrizen
+* Neue Funktionen `real`, `imag`, `conj` und `angle`
+* CLI-Modus: `scicalc datei.sc` schreibt Eingaben und Ergebnisse auf stdout
+* Robustere SI-Formatierung fuer sehr kleine Werte
+
 # V2.0.1
 * Version auf `2.0.1` angehoben
 * Neue Funktion `round`

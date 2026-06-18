@@ -22,6 +22,8 @@ void Variables::init()
 
 	// math
 	set("pi", M_PI);
+	set("i", Value::Number(0, 1));
+	set("j", Value::Number(0, 1));
 
 	// mechanic
 	set("_g", 9.81);
@@ -43,6 +45,11 @@ void Variables::init()
 
 
 void Variables::set(QString name, long double value, QString unit)
+{
+	set(name, Value(value), unit);
+}
+
+void Variables::set(QString name, Value::Number value, QString unit)
 {
 	set(name, Value(value), unit);
 }
@@ -77,7 +84,11 @@ long double Variables::get(QString name)
 	{
 		throw ParseException("variable '"+name+"' is not a scalar");
 	}
-	return value.scalar();
+	if(value.scalar().imag()!=0)
+	{
+		throw ParseException("variable '"+name+"' is not real");
+	}
+	return value.scalar().real();
 }
 
 

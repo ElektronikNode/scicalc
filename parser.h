@@ -43,10 +43,12 @@ private:
 	static bool VersionFunction(QString *output);
 	
 	
-	static long double divide(long double dividend, long double divisor);
-	static long double requireScalar(Value value, QString context);
-	static QString formatValue(Value value);
+	static Value::Number divide(Value::Number dividend, Value::Number divisor);
+	static Value::Number requireScalar(Value value, QString context);
+	static long double requireRealScalar(Value value, QString context);
+	static QString formatValue(Value value, QString unit=QString());
 	static bool isExpressionStart(Token::Kind kind);
+	static bool isImaginaryUnit(QString name);
 	static void requireSameSize(Value left, Value right, QString op);
 	static Value elementWise(Value left, Value right, Token::Kind op);
 	static Value add(Value left, Value right);
@@ -60,8 +62,8 @@ private:
 	static Value inverse(Value value);
 	static Value transpose(Value value);
 	static Value negate(Value value);
-	static Value mapUnary(Value value, long double (*function)(long double), QString context);
-	static Value mapBinary(Value left, Value right, long double (*function)(long double, long double), QString context);
+	static Value mapUnary(Value value, Value::Number (*function)(Value::Number), QString context);
+	static Value mapBinary(Value left, Value right, Value::Number (*function)(Value::Number, Value::Number), QString context);
 
 	static void check(Token::Kind expected);
 
