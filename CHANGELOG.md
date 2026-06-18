@@ -1,6 +1,13 @@
 scicalc changelog
 =================
 
+# V2.2.0
+* Matlab-kompatible Vektor- und Matrixfunktionen fuer Reduktion, Kumulierung,
+  Dimensionen, Matrixerzeugung, Lineare Algebra und einfache Datenanalyse
+* Neue Funktionen u.a. `sum`, `cumsum`, `prod`, `mean`, `std`, `size`,
+  `reshape`, `zeros`, `ones`, `eye`, `diag`, `linspace`, `det`, `norm`,
+  `dot`, `cross`, `eig`, `diff`, `sort`, `unique`, `trapz` und `unwrap`
+
 # V2.1.1
 * Tabs fuer mehrere parallele scicalc-Dokumente
 * Ungespeicherte Tabs werden ueber Sessions hinweg wiederhergestellt

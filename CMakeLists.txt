@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(scicalc VERSION 2.1.1 LANGUAGES CXX)
+project(scicalc VERSION 2.2.0 LANGUAGES CXX)
 set(SCICALC_BUILD_NUMBER_FILE "${CMAKE_CURRENT_SOURCE_DIR}/build-number.txt")
 set(SCICALC_VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/generated/scicalc_version.h")
 

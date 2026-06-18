@@ -9,6 +9,39 @@ ceil      Aufrunden zur nächsten ganzen Zahl
 floor     Abrunden zur nächsten ganzen Zahl
 round     Runden zur nächsten ganzen Zahl
 inv       Matrix invertieren
+sum       Summe entlang der ersten Nicht-Singleton-Dimension
+cumsum    kumulierte Summe
+prod      Produkt entlang der ersten Nicht-Singleton-Dimension
+cumprod   kumuliertes Produkt
+min       Minimum
+max       Maximum
+mean      Mittelwert
+median    Median
+std       Standardabweichung
+var       Varianz
+size      Matrixdimensionen
+length    groesste Matrixdimension
+numel     Anzahl der Elemente
+reshape   Matrix spaltenweise umformen
+zeros     Nullmatrix erzeugen
+ones      Einsmatrix erzeugen
+eye       Einheitsmatrix erzeugen
+diag      Diagonalmatrix oder Diagonalvektor
+linspace  linear verteilte Werte erzeugen
+logspace  logarithmisch verteilte Werte erzeugen
+det       Determinante
+trace     Spur einer Matrix
+rank      Matrixrang
+norm      Vektor- oder Matrixnorm
+dot       Skalarprodukt
+cross     Kreuzprodukt fuer 3-elementige Vektoren
+eig       Eigenwerte
+diff      Differenzen
+gradient  numerischer Gradient
+sort      Werte sortieren
+unique    eindeutige Werte
+trapz     Trapezintegration
+unwrap    Phasenspruenge um 2*pi entfernen
 sin       Sinusfunktion (mit Radiant)
 cos       Cosinusfunktion (mit Radiant)
 tan       Tangensfunktion (mit Radiant)

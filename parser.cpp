@@ -13,6 +13,7 @@
 #include "print.h"
 #include "scicalc.h"
 
+#include <algorithm>
 #include <cmath>
 #include <complex>
 #include <QList>
@@ -38,6 +39,17 @@ namespace
 	bool hasNaN(Number value)
 	{
 		return std::isnan(value.real()) || std::isnan(value.imag());
+	}
+
+	bool numberLess(Number left, Number right)
+	{
+		long double leftAbs=std::abs(left);
+		long double rightAbs=std::abs(right);
+		if(leftAbs!=rightAbs)
+		{
+			return leftAbs<rightAbs;
+		}
+		return std::arg(left)<std::arg(right);
 	}
 
 	long double requireRealNumber(Number value, QString context)
@@ -232,7 +244,40 @@ QStringList Parser::functionNames()
 		<< "getVersion"
 		<< "setDigits"
 		<< "setTrailingZeros"
-		<< "setAccounting";
+		<< "setAccounting"
+		<< "sum"
+		<< "cumsum"
+		<< "prod"
+		<< "cumprod"
+		<< "min"
+		<< "max"
+		<< "mean"
+		<< "median"
+		<< "std"
+		<< "var"
+		<< "size"
+		<< "length"
+		<< "numel"
+		<< "reshape"
+		<< "zeros"
+		<< "ones"
+		<< "eye"
+		<< "diag"
+		<< "linspace"
+		<< "logspace"
+		<< "det"
+		<< "trace"
+		<< "rank"
+		<< "norm"
+		<< "dot"
+		<< "cross"
+		<< "eig"
+		<< "diff"
+		<< "sort"
+		<< "unique"
+		<< "gradient"
+		<< "trapz"
+		<< "unwrap";
 }
 
 
@@ -497,6 +542,126 @@ Value Parser::Function()
 	else if(fun=="conj"){	n=1;	value=mapUnary(args.value(0), fnConj, fun);}
 	else if(fun=="angle"){	n=1;	value=mapUnary(args.value(0), fnAngle, fun);}
 	else if(fun=="rad2deg"){n=1;	value=mapUnary(args.value(0), fnRad2Deg, fun);}
+	else if(fun=="sum" || fun=="prod" || fun=="min" || fun=="max" ||
+		fun=="mean" || fun=="median" || fun=="std" || fun=="var")
+	{
+		if(args.size()<1 || args.size()>2)
+		{
+			throw ParseException("invalid number of arguments for function '"+fun+"'");
+		}
+		int dimension=args.size()==2 ? dimensionArgument(args.value(1), fun) : firstNonSingletonDimension(args.value(0));
+		value=reduce(args.value(0), fun, dimension);
+		n=args.size();
+	}
+	else if(fun=="cumsum" || fun=="cumprod")
+	{
+		if(args.size()<1 || args.size()>2)
+		{
+			throw ParseException("invalid number of arguments for function '"+fun+"'");
+		}
+		int dimension=args.size()==2 ? dimensionArgument(args.value(1), fun) : firstNonSingletonDimension(args.value(0));
+		value=cumulative(args.value(0), fun, dimension);
+		n=args.size();
+	}
+	else if(fun=="size")
+	{
+		if(args.size()<1 || args.size()>2)
+		{
+			throw ParseException("invalid number of arguments for function '"+fun+"'");
+		}
+		value=sizeFunction(args, fun);
+		n=args.size();
+	}
+	else if(fun=="length"){	n=1;	value=Value(std::max(args.value(0).rows(), args.value(0).columns()));}
+	else if(fun=="numel"){	n=1;	value=Value(args.value(0).rows()*args.value(0).columns());}
+	else if(fun=="reshape")
+	{
+		n=3;
+		value=reshape(args.value(0), requireInteger(args.value(1), fun), requireInteger(args.value(2), fun));
+	}
+	else if(fun=="zeros" || fun=="ones" || fun=="eye")
+	{
+		if(args.size()<1 || args.size()>2)
+		{
+			throw ParseException("invalid number of arguments for function '"+fun+"'");
+		}
+		int rows=requireInteger(args.value(0), fun);
+		int columns=args.size()==2 ? requireInteger(args.value(1), fun) : rows;
+		if(fun=="zeros"){ value=zeros(rows, columns); }
+		else if(fun=="ones"){ value=ones(rows, columns); }
+		else { value=eye(rows, columns); }
+		n=args.size();
+	}
+	else if(fun=="diag"){	n=1;	value=diag(args.value(0));}
+	else if(fun=="linspace" || fun=="logspace")
+	{
+		if(args.size()<2 || args.size()>3)
+		{
+			throw ParseException("invalid number of arguments for function '"+fun+"'");
+		}
+		int count=args.size()==3 ? requireInteger(args.value(2), fun) : 100;
+		value=linspace(args.value(0), args.value(1), count, fun=="logspace");
+		n=args.size();
+	}
+	else if(fun=="det"){	n=1;	value=determinant(args.value(0));}
+	else if(fun=="trace"){	n=1;	value=trace(args.value(0));}
+	else if(fun=="rank"){	n=1;	value=rank(args.value(0));}
+	else if(fun=="norm"){	n=1;	value=norm(args.value(0));}
+	else if(fun=="dot"){	n=2;	value=dot(args.value(0), args.value(1));}
+	else if(fun=="cross"){	n=2;	value=cross(args.value(0), args.value(1));}
+	else if(fun=="eig"){	n=1;	value=eig(args.value(0));}
+	else if(fun=="diff")
+	{
+		if(args.size()<1 || args.size()>3)
+		{
+			throw ParseException("invalid number of arguments for function '"+fun+"'");
+		}
+		int order=args.size()>=2 ? requireInteger(args.value(1), fun) : 1;
+		int dimension=args.size()==3 ? dimensionArgument(args.value(2), fun) : firstNonSingletonDimension(args.value(0));
+		value=diff(args.value(0), order, dimension);
+		n=args.size();
+	}
+	else if(fun=="sort")
+	{
+		if(args.size()<1 || args.size()>2)
+		{
+			throw ParseException("invalid number of arguments for function '"+fun+"'");
+		}
+		int dimension=args.size()==2 ? dimensionArgument(args.value(1), fun) : firstNonSingletonDimension(args.value(0));
+		value=sort(args.value(0), dimension);
+		n=args.size();
+	}
+	else if(fun=="unique"){	n=1;	value=unique(args.value(0));}
+	else if(fun=="gradient")
+	{
+		if(args.size()<1 || args.size()>2)
+		{
+			throw ParseException("invalid number of arguments for function '"+fun+"'");
+		}
+		int dimension=args.size()==2 ? dimensionArgument(args.value(1), fun) : firstNonSingletonDimension(args.value(0));
+		value=gradient(args.value(0), dimension);
+		n=args.size();
+	}
+	else if(fun=="trapz")
+	{
+		if(args.size()<1 || args.size()>2)
+		{
+			throw ParseException("invalid number of arguments for function '"+fun+"'");
+		}
+		int dimension=args.size()==2 ? dimensionArgument(args.value(1), fun) : firstNonSingletonDimension(args.value(0));
+		value=trapz(args.value(0), dimension);
+		n=args.size();
+	}
+	else if(fun=="unwrap")
+	{
+		if(args.size()<1 || args.size()>2)
+		{
+			throw ParseException("invalid number of arguments for function '"+fun+"'");
+		}
+		int dimension=args.size()==2 ? dimensionArgument(args.value(1), fun) : firstNonSingletonDimension(args.value(0));
+		value=unwrap(args.value(0), dimension);
+		n=args.size();
+	}
 	else if(fun=="setDigits")
 	{
 		n=1;
@@ -1058,6 +1223,657 @@ Value Parser::mapBinary(Value left, Value right, Value::Number (*function)(Value
 			row.append(cell);
 		}
 		result.append(row);
+	}
+	return Value(result);
+}
+
+int Parser::requireInteger(Value value, QString context)
+{
+	long double real=requireRealScalar(value, context);
+	int integer=static_cast<int>(real);
+	if(real!=integer)
+	{
+		throw ParseException(context + " expects integer values");
+	}
+	return integer;
+}
+
+int Parser::dimensionArgument(Value value, QString context)
+{
+	int dimension=requireInteger(value, context);
+	if(dimension!=1 && dimension!=2)
+	{
+		throw ParseException(context + " dimension must be 1 or 2");
+	}
+	return dimension;
+}
+
+int Parser::firstNonSingletonDimension(Value value)
+{
+	return value.rows()>1 ? 1 : 2;
+}
+
+Value Parser::reduce(Value value, QString function, int dimension)
+{
+	if(value.isScalar())
+	{
+		if(function=="sum" || function=="prod" || function=="min" || function=="max" ||
+			function=="mean" || function=="median")
+		{
+			return value;
+		}
+		if(function=="std" || function=="var")
+		{
+			return Value(0);
+		}
+	}
+
+	int outer=dimension==1 ? value.columns() : value.rows();
+	int inner=dimension==1 ? value.rows() : value.columns();
+	Value::Row rowResult;
+	Value::Matrix matrixResult;
+
+	for(int o=0; o<outer; o++)
+	{
+		QVector<Value::Number> items;
+		for(int i=0; i<inner; i++)
+		{
+			items.append(dimension==1 ? value.at(i, o) : value.at(o, i));
+		}
+
+		Value::Number result(0, 0);
+		if(function=="sum" || function=="mean" || function=="std" || function=="var")
+		{
+			for(int i=0; i<items.size(); i++)
+			{
+				result+=items.at(i);
+			}
+			if(function=="mean")
+			{
+				result/=Value::Number(items.size(), 0);
+			}
+			else if(function=="std" || function=="var")
+			{
+				Value::Number mean=result/Value::Number(items.size(), 0);
+				long double sumSquares=0;
+				for(int i=0; i<items.size(); i++)
+				{
+					Value::Number delta=items.at(i)-mean;
+					sumSquares+=std::norm(delta);
+				}
+				long double divisor=items.size()>1 ? items.size()-1 : 1;
+				long double variance=sumSquares/divisor;
+				result=Value::Number(function=="std" ? sqrtl(variance) : variance, 0);
+			}
+		}
+		else if(function=="prod")
+		{
+			result=Value::Number(1, 0);
+			for(int i=0; i<items.size(); i++)
+			{
+				result*=items.at(i);
+			}
+		}
+		else if(function=="min" || function=="max" || function=="median")
+		{
+			std::sort(items.begin(), items.end(), numberLess);
+			if(function=="min")
+			{
+				result=items.first();
+			}
+			else if(function=="max")
+			{
+				result=items.last();
+			}
+			else
+			{
+				int mid=items.size()/2;
+				result=items.size()%2==1 ? items.at(mid) : (items.at(mid-1)+items.at(mid))/Value::Number(2, 0);
+			}
+		}
+		else
+		{
+			throw ParseException("unknown reduction function '"+function+"'");
+		}
+
+		if(dimension==1)
+		{
+			rowResult.append(cleanNumber(result));
+		}
+		else
+		{
+			Value::Row row;
+			row.append(cleanNumber(result));
+			matrixResult.append(row);
+		}
+	}
+
+	if(dimension==1)
+	{
+		matrixResult.append(rowResult);
+	}
+	if(matrixResult.size()==1 && matrixResult.at(0).size()==1)
+	{
+		return Value(matrixResult.at(0).at(0));
+	}
+	return Value(matrixResult);
+}
+
+Value Parser::cumulative(Value value, QString function, int dimension)
+{
+	if(value.isScalar())
+	{
+		return value;
+	}
+
+	Value::Matrix result=value.matrix();
+	for(int r=0; r<value.rows(); r++)
+	{
+		result[r].resize(value.columns());
+	}
+
+	if(dimension==1)
+	{
+		for(int c=0; c<value.columns(); c++)
+		{
+			Value::Number acc=function=="cumprod" ? Value::Number(1, 0) : Value::Number(0, 0);
+			for(int r=0; r<value.rows(); r++)
+			{
+				acc=function=="cumprod" ? acc*value.at(r, c) : acc+value.at(r, c);
+				result[r][c]=cleanNumber(acc);
+			}
+		}
+	}
+	else
+	{
+		for(int r=0; r<value.rows(); r++)
+		{
+			Value::Number acc=function=="cumprod" ? Value::Number(1, 0) : Value::Number(0, 0);
+			for(int c=0; c<value.columns(); c++)
+			{
+				acc=function=="cumprod" ? acc*value.at(r, c) : acc+value.at(r, c);
+				result[r][c]=cleanNumber(acc);
+			}
+		}
+	}
+	return Value(result);
+}
+
+Value Parser::sizeFunction(QList<Value> args, QString context)
+{
+	Value value=args.value(0);
+	if(args.size()==2)
+	{
+		int dimension=dimensionArgument(args.value(1), context);
+		return Value(dimension==1 ? value.rows() : value.columns());
+	}
+
+	Value::Matrix result;
+	Value::Row row;
+	row.append(Value::Number(value.rows(), 0));
+	row.append(Value::Number(value.columns(), 0));
+	result.append(row);
+	return Value(result);
+}
+
+Value Parser::reshape(Value value, int rows, int columns)
+{
+	if(rows<0 || columns<0)
+	{
+		throw ParseException("reshape dimensions must not be negative");
+	}
+	if(rows*columns!=value.rows()*value.columns())
+	{
+		throw ParseException("reshape dimensions must agree with number of elements");
+	}
+
+	QVector<Value::Number> elements;
+	for(int c=0; c<value.columns(); c++)
+	{
+		for(int r=0; r<value.rows(); r++)
+		{
+			elements.append(value.at(r, c));
+		}
+	}
+
+	Value::Matrix result;
+	for(int r=0; r<rows; r++)
+	{
+		Value::Row row;
+		for(int c=0; c<columns; c++)
+		{
+			row.append(elements.at(c*rows+r));
+		}
+		result.append(row);
+	}
+	return Value(result);
+}
+
+Value Parser::zeros(int rows, int columns)
+{
+	if(rows<0 || columns<0)
+	{
+		throw ParseException("zeros dimensions must not be negative");
+	}
+
+	Value::Matrix result;
+	for(int r=0; r<rows; r++)
+	{
+		Value::Row row;
+		for(int c=0; c<columns; c++)
+		{
+			row.append(Value::Number(0, 0));
+		}
+		result.append(row);
+	}
+	return Value(result);
+}
+
+Value Parser::ones(int rows, int columns)
+{
+	if(rows<0 || columns<0)
+	{
+		throw ParseException("ones dimensions must not be negative");
+	}
+
+	Value::Matrix result;
+	for(int r=0; r<rows; r++)
+	{
+		Value::Row row;
+		for(int c=0; c<columns; c++)
+		{
+			row.append(Value::Number(1, 0));
+		}
+		result.append(row);
+	}
+	return Value(result);
+}
+
+Value Parser::eye(int rows, int columns)
+{
+	if(rows<0 || columns<0)
+	{
+		throw ParseException("eye dimensions must not be negative");
+	}
+
+	Value::Matrix result;
+	for(int r=0; r<rows; r++)
+	{
+		Value::Row row;
+		for(int c=0; c<columns; c++)
+		{
+			row.append(Value::Number(r==c ? 1 : 0, 0));
+		}
+		result.append(row);
+	}
+	return Value(result);
+}
+
+Value Parser::diag(Value value)
+{
+	if(value.rows()==1 || value.columns()==1)
+	{
+		int count=value.rows()*value.columns();
+		Value::Matrix result;
+		for(int r=0; r<count; r++)
+		{
+			Value::Row row;
+			for(int c=0; c<count; c++)
+			{
+				Value::Number element(0, 0);
+				if(r==c)
+				{
+					element=value.rows()==1 ? value.at(0, r) : value.at(r, 0);
+				}
+				row.append(element);
+			}
+			result.append(row);
+		}
+		return Value(result);
+	}
+
+	int count=std::min(value.rows(), value.columns());
+	Value::Matrix result;
+	for(int r=0; r<count; r++)
+	{
+		Value::Row row;
+		row.append(value.at(r, r));
+		result.append(row);
+	}
+	return Value(result);
+}
+
+Value Parser::linspace(Value start, Value end, int count, bool logarithmic)
+{
+	if(count<0)
+	{
+		throw ParseException("linspace count must not be negative");
+	}
+	Value::Matrix result;
+	Value::Row row;
+	Value::Number a=requireScalar(start, logarithmic ? "logspace" : "linspace");
+	Value::Number b=requireScalar(end, logarithmic ? "logspace" : "linspace");
+	for(int i=0; i<count; i++)
+	{
+		Value::Number value=count==1 ? b : a+(b-a)*Value::Number(i, 0)/Value::Number(count-1, 0);
+		if(logarithmic)
+		{
+			value=std::pow(Value::Number(10, 0), value);
+		}
+		row.append(cleanNumber(value));
+	}
+	result.append(row);
+	return Value(result);
+}
+
+Value Parser::determinant(Value value)
+{
+	if(value.rows()!=value.columns())
+	{
+		throw ParseException("det expects a square matrix");
+	}
+	std::complex<double> result=toEigen(value).determinant();
+	return Value(cleanNumber(Number(result.real(), result.imag())));
+}
+
+Value Parser::trace(Value value)
+{
+	int count=std::min(value.rows(), value.columns());
+	Value::Number result(0, 0);
+	for(int i=0; i<count; i++)
+	{
+		result+=value.at(i, i);
+	}
+	return Value(cleanNumber(result));
+}
+
+Value Parser::rank(Value value)
+{
+	Eigen::MatrixXcd matrix=toEigen(value);
+	Eigen::FullPivLU<Eigen::MatrixXcd> decomposition(matrix);
+	return Value(decomposition.rank());
+}
+
+Value Parser::norm(Value value)
+{
+	if(value.rows()==1 || value.columns()==1)
+	{
+		long double sum=0;
+		for(int r=0; r<value.rows(); r++)
+		{
+			for(int c=0; c<value.columns(); c++)
+			{
+				sum+=std::norm(value.at(r, c));
+			}
+		}
+		return Value(sqrtl(sum));
+	}
+
+	Eigen::JacobiSVD<Eigen::MatrixXcd> svd(toEigen(value));
+	return Value(svd.singularValues()(0));
+}
+
+Value Parser::dot(Value left, Value right)
+{
+	if(left.rows()*left.columns()!=right.rows()*right.columns())
+	{
+		throw ParseException("matrix dimensions must agree for 'dot'");
+	}
+
+	Value::Number result(0, 0);
+	for(int i=0; i<left.rows()*left.columns(); i++)
+	{
+		int lr=i%left.rows();
+		int lc=i/left.rows();
+		int rr=i%right.rows();
+		int rc=i/right.rows();
+		result+=std::conj(left.at(lr, lc))*right.at(rr, rc);
+	}
+	return Value(cleanNumber(result));
+}
+
+Value Parser::cross(Value left, Value right)
+{
+	if(left.rows()*left.columns()!=3 || right.rows()*right.columns()!=3)
+	{
+		throw ParseException("cross expects 3-element vectors");
+	}
+
+	QVector<Value::Number> a;
+	QVector<Value::Number> b;
+	for(int i=0; i<3; i++)
+	{
+		a.append(left.rows()==1 ? left.at(0, i) : left.at(i, 0));
+		b.append(right.rows()==1 ? right.at(0, i) : right.at(i, 0));
+	}
+
+	Value::Matrix result;
+	Value::Row row;
+	row.append(cleanNumber(a.at(1)*b.at(2)-a.at(2)*b.at(1)));
+	row.append(cleanNumber(a.at(2)*b.at(0)-a.at(0)*b.at(2)));
+	row.append(cleanNumber(a.at(0)*b.at(1)-a.at(1)*b.at(0)));
+	result.append(row);
+	return Value(result);
+}
+
+Value Parser::eig(Value value)
+{
+	if(value.rows()!=value.columns())
+	{
+		throw ParseException("eig expects a square matrix");
+	}
+	Eigen::ComplexEigenSolver<Eigen::MatrixXcd> solver(toEigen(value));
+	Value::Matrix result;
+	for(int i=0; i<solver.eigenvalues().rows(); i++)
+	{
+		Value::Row row;
+		std::complex<double> eigenvalue=solver.eigenvalues()(i);
+		row.append(cleanNumber(Value::Number(eigenvalue.real(), eigenvalue.imag())));
+		result.append(row);
+	}
+	return Value(result);
+}
+
+Value Parser::diff(Value value, int order, int dimension)
+{
+	if(order<0)
+	{
+		throw ParseException("diff order must not be negative");
+	}
+	Value result=value;
+	for(int n=0; n<order; n++)
+	{
+		int rows=dimension==1 ? std::max(result.rows()-1, 0) : result.rows();
+		int columns=dimension==2 ? std::max(result.columns()-1, 0) : result.columns();
+		Value::Matrix next;
+		for(int r=0; r<rows; r++)
+		{
+			Value::Row row;
+			for(int c=0; c<columns; c++)
+			{
+				Value::Number delta=dimension==1 ? result.at(r+1, c)-result.at(r, c) : result.at(r, c+1)-result.at(r, c);
+				row.append(cleanNumber(delta));
+			}
+			next.append(row);
+		}
+		result=Value(next);
+	}
+	return result;
+}
+
+Value Parser::gradient(Value value, int dimension)
+{
+	if(value.isScalar())
+	{
+		return Value(0);
+	}
+
+	Value::Matrix result=value.matrix();
+	for(int r=0; r<value.rows(); r++)
+	{
+		result[r].resize(value.columns());
+	}
+
+	if(dimension==1)
+	{
+		for(int c=0; c<value.columns(); c++)
+		{
+			for(int r=0; r<value.rows(); r++)
+			{
+				Value::Number delta;
+				if(value.rows()==1){ delta=Value::Number(0, 0); }
+				else if(r==0){ delta=value.at(1, c)-value.at(0, c); }
+				else if(r==value.rows()-1){ delta=value.at(r, c)-value.at(r-1, c); }
+				else { delta=(value.at(r+1, c)-value.at(r-1, c))/Value::Number(2, 0); }
+				result[r][c]=cleanNumber(delta);
+			}
+		}
+	}
+	else
+	{
+		for(int r=0; r<value.rows(); r++)
+		{
+			for(int c=0; c<value.columns(); c++)
+			{
+				Value::Number delta;
+				if(value.columns()==1){ delta=Value::Number(0, 0); }
+				else if(c==0){ delta=value.at(r, 1)-value.at(r, 0); }
+				else if(c==value.columns()-1){ delta=value.at(r, c)-value.at(r, c-1); }
+				else { delta=(value.at(r, c+1)-value.at(r, c-1))/Value::Number(2, 0); }
+				result[r][c]=cleanNumber(delta);
+			}
+		}
+	}
+	return Value(result);
+}
+
+Value Parser::sort(Value value, int dimension)
+{
+	if(value.isScalar())
+	{
+		return value;
+	}
+
+	Value::Matrix result=value.matrix();
+	if(dimension==1)
+	{
+		for(int c=0; c<value.columns(); c++)
+		{
+			QVector<Value::Number> items;
+			for(int r=0; r<value.rows(); r++){ items.append(value.at(r, c)); }
+			std::sort(items.begin(), items.end(), numberLess);
+			for(int r=0; r<value.rows(); r++){ result[r][c]=items.at(r); }
+		}
+	}
+	else
+	{
+		for(int r=0; r<value.rows(); r++)
+		{
+			std::sort(result[r].begin(), result[r].end(), numberLess);
+		}
+	}
+	return Value(result);
+}
+
+Value Parser::unique(Value value)
+{
+	QVector<Value::Number> items;
+	for(int r=0; r<value.rows(); r++)
+	{
+		for(int c=0; c<value.columns(); c++)
+		{
+			items.append(value.at(r, c));
+		}
+	}
+	std::sort(items.begin(), items.end(), numberLess);
+	Value::Matrix result;
+	Value::Row row;
+	for(int i=0; i<items.size(); i++)
+	{
+		if(i==0 || items.at(i)!=items.at(i-1))
+		{
+			row.append(cleanNumber(items.at(i)));
+		}
+	}
+	result.append(row);
+	return Value(result);
+}
+
+Value Parser::trapz(Value value, int dimension)
+{
+	if(value.isScalar())
+	{
+		return Value(0);
+	}
+
+	int outer=dimension==1 ? value.columns() : value.rows();
+	int inner=dimension==1 ? value.rows() : value.columns();
+	Value::Matrix result;
+	Value::Row rowResult;
+	for(int o=0; o<outer; o++)
+	{
+		Value::Number sum(0, 0);
+		for(int i=0; i<inner-1; i++)
+		{
+			Value::Number a=dimension==1 ? value.at(i, o) : value.at(o, i);
+			Value::Number b=dimension==1 ? value.at(i+1, o) : value.at(o, i+1);
+			sum+=(a+b)/Value::Number(2, 0);
+		}
+		if(dimension==1)
+		{
+			rowResult.append(cleanNumber(sum));
+		}
+		else
+		{
+			Value::Row row;
+			row.append(cleanNumber(sum));
+			result.append(row);
+		}
+	}
+	if(dimension==1)
+	{
+		result.append(rowResult);
+	}
+	if(result.size()==1 && result.at(0).size()==1)
+	{
+		return Value(result.at(0).at(0));
+	}
+	return Value(result);
+}
+
+Value Parser::unwrap(Value value, int dimension)
+{
+	if(value.isScalar())
+	{
+		return Value(cleanNumber(Value::Number(requireRealNumber(value.scalar(), "unwrap"), 0)));
+	}
+
+	Value::Matrix result=value.matrix();
+	for(int r=0; r<value.rows(); r++)
+	{
+		result[r].resize(value.columns());
+	}
+
+	int outer=dimension==1 ? value.columns() : value.rows();
+	int inner=dimension==1 ? value.rows() : value.columns();
+	for(int o=0; o<outer; o++)
+	{
+		long double offset=0;
+		long double previous=0;
+		for(int i=0; i<inner; i++)
+		{
+			int r=dimension==1 ? i : o;
+			int c=dimension==1 ? o : i;
+			long double current=requireRealNumber(value.at(r, c), "unwrap");
+			if(i>0)
+			{
+				long double delta=current-previous;
+				if(delta>M_PI){ offset-=2*M_PI; }
+				else if(delta<-M_PI){ offset+=2*M_PI; }
+			}
+			result[r][c]=cleanNumber(Value::Number(current+offset, 0));
+			previous=current;
+		}
 	}
 	return Value(result);
 }

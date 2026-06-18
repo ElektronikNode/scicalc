@@ -1,8 +1,8 @@
-% scicalc 2.1 demo
+% scicalc 2.2 demo
 % Open this file in scicalc and refresh the document.
 
 getVersion()
-				2.1.1-004
+				2.2.0-003
 
 // Accounting for line based continued calculations:
 setAccounting(1)
@@ -19,8 +19,6 @@ setDigits(6)
 				6.00000
 setTrailingZeros(0)
 				0
-setAccounting(0)
-				ERROR: setAccounting can only be called once per script
 
 % Numbers, prefixes and units
 f=1.5k #Hz
@@ -148,10 +146,56 @@ A/[2 0; 0 2]
 [1:3; 4:6]
 				⎡ 1  2  3 ⎤
 				⎣ 4  5  6 ⎦
-sin(A)
-				⎡ 841.471m   909.297m ⎤
-				⎣  141.12m  -756.802m ⎦
 
+% Matlab-compatible vector and matrix functions
+sum(v)
+				15
+mean(v)
+				3
+cumsum(v)
+				[1  3  6  10  15]
+size(C)
+				[2  3]
+reshape(1:6,2,3)
+				⎡ 1  3  5 ⎤
+				⎣ 2  4  6 ⎦
+zeros(2,3)
+				⎡ 0  0  0 ⎤
+				⎣ 0  0  0 ⎦
+ones(2,2)
+				⎡ 1  1 ⎤
+				⎣ 1  1 ⎦
+eye(3)
+				⎡ 1  0  0 ⎤
+				⎢ 0  1  0 ⎥
+				⎣ 0  0  1 ⎦
+diag([1 2 3])
+				⎡ 1  0  0 ⎤
+				⎢ 0  2  0 ⎥
+				⎣ 0  0  3 ⎦
+det(A)
+				-2
+trace(A)
+				5
+norm([3 4])
+				5
+dot([1 2 3],[4 5 6])
+				32
+cross([1 0 0],[0 1 0])
+				[0  0  1]
+eig([1 0; 0 2])
+				⎡ 1 ⎤
+				⎣ 2 ⎦
+diff([1 4 9 16])
+				[3  5  7]
+sort([3 1 2])
+				[1  2  3]
+unique([3 1 2 3 1])
+				[1  2  3]
+trapz([1 2 3])
+				4
+unwrap([0, pi, (2*pi+0.1)])
+				[0  3.14159  100m]
 
 % Comments and suppressed output
 hidden=123;

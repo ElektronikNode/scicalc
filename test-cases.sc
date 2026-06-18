@@ -3,7 +3,7 @@
 
 // Temporary display settings
 getVersion()
-				2.1.1-004
+				2.2.0-003
 setDigits(6)
 				6.00000
 setTrailingZeros(0)
@@ -512,6 +512,123 @@ inv([1 i; 2 3])
 				⎡ 1  2  3 ⎤
 				⎣ 4  5  6 ⎦
 
+// Matlab-compatible vector and matrix functions
+sum(5)
+				5
+sum([1 2 3])
+				6
+sum(matrixC)
+				[5  7  9]
+sum(matrixC,2)
+				⎡  6 ⎤
+				⎣ 15 ⎦
+cumsum([1 2 3])
+				[1  3  6]
+cumsum(matrixC,2)
+				⎡ 1  3   6 ⎤
+				⎣ 4  9  15 ⎦
+prod([2 3 4])
+				24
+cumprod([2 3 4])
+				[2  6  24]
+min([3 1 2])
+				1
+max([3 1 2])
+				3
+mean([1 2 3])
+				2
+median([3 1 2 4])
+				2.5
+std([1 2 3])
+				1
+var([1 2 3])
+				1
+size(matrixC)
+				[2  3]
+size(matrixC,1)
+				2
+size(matrixC,2)
+				3
+length(matrixC)
+				3
+numel(matrixC)
+				6
+reshape(1:6,2,3)
+				⎡ 1  3  5 ⎤
+				⎣ 2  4  6 ⎦
+reshape(matrixC,3,2)
+				⎡ 1  5 ⎤
+				⎢ 4  3 ⎥
+				⎣ 2  6 ⎦
+zeros(2,3)
+				⎡ 0  0  0 ⎤
+				⎣ 0  0  0 ⎦
+ones(2,2)
+				⎡ 1  1 ⎤
+				⎣ 1  1 ⎦
+eye(3)
+				⎡ 1  0  0 ⎤
+				⎢ 0  1  0 ⎥
+				⎣ 0  0  1 ⎦
+eye(2,3)
+				⎡ 1  0  0 ⎤
+				⎣ 0  1  0 ⎦
+diag([1 2 3])
+				⎡ 1  0  0 ⎤
+				⎢ 0  2  0 ⎥
+				⎣ 0  0  3 ⎦
+diag(matrixA)
+				⎡ 1 ⎤
+				⎣ 4 ⎦
+linspace(1,5,5)
+				[1  2  3  4  5]
+logspace(0,3,4)
+				[1  10  100  1k]
+det(matrixA)
+				-2
+trace(matrixA)
+				5
+rank(matrixA)
+				2
+norm([3 4])
+				5
+dot([1 2 3],[4 5 6])
+				32
+cross([1 0 0],[0 1 0])
+				[0  0  1]
+eig([1 0; 0 2])
+				⎡ 1 ⎤
+				⎣ 2 ⎦
+diff([1 4 9 16])
+				[3  5  7]
+diff(matrixC,1,2)
+				⎡ 1  1 ⎤
+				⎣ 1  1 ⎦
+gradient([1 4 9 16])
+				[3  4  6  7]
+sort([3 1 2])
+				[1  2  3]
+sort([3 1; 2 4],1)
+				⎡ 2  1 ⎤
+				⎣ 3  4 ⎦
+unique([3 1 2 3 1])
+				[1  2  3]
+trapz([1 2 3])
+				4
+trapz(matrixC,2)
+				⎡  4 ⎤
+				⎣ 10 ⎦
+unwrap([0, pi, (2*pi+0.1)])
+				[0  3.14159  100m]
+sum([1 i; 2 3])
+				[3  3+1j]
+mean([1+i 3+i])
+				2+1j
+det([1 i; 2 3])
+				3-2j
+dot([1 i],[2 3i])
+				5
+
 // Matrix error cases
 [1 2; 3]
 				ERROR: all matrix rows must have the same length
@@ -529,6 +646,18 @@ inv([1 2; 2 4])
 				ERROR: matrix is singular
 inv([1 2 3; 4 5 6])
 				ERROR: inv expects a square matrix
+sum(matrixC,3)
+				ERROR: sum dimension must be 1 or 2
+reshape(1:5,2,3)
+				ERROR: reshape dimensions must agree with number of elements
+zeros(-1,2)
+				ERROR: zeros dimensions must not be negative
+det([1 2 3; 4 5 6])
+				ERROR: det expects a square matrix
+dot([1 2],[1 2 3])
+				ERROR: matrix dimensions must agree for 'dot'
+cross([1 2],[1 2])
+				ERROR: cross expects 3-element vectors
 atan2(1+i, 1)
 				ERROR: atan2 expects real values
 1:i:5
@@ -540,6 +669,4 @@ atan2(1+i, 1)
 matrixA
 				⎡ 1  2 ⎤
 				⎣ 3  4 ⎦
-
-
 

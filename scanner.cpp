@@ -16,6 +16,7 @@ const QChar Scanner::eof_CHAR=QChar::LineSeparator;		// end of line
 QChar Scanner::ch;							// last character
 QString Scanner::in;						// input string
 int Scanner::pos;							// current position in input string
+int Scanner::parenDepth;					// parenthesis nesting depth for function argument separators
 int Scanner::matrixDepth;					// bracket nesting depth for Matlab matrix literals
 
 Token* Scanner::peeked;						// peeked Token
@@ -26,6 +27,7 @@ void Scanner::init(QString line)
 	in=line;
 	peeked=0;
 	pos=0;
+	parenDepth=0;
 	matrixDepth=0;
 
 	nextCh();
@@ -93,8 +95,8 @@ Token* Scanner::next()
 						break;
 						
 			case '^':	nextCh(); t->kind=Token::hat;	break;
-			case '(':	nextCh(); t->kind=Token::lpar;	break;
-			case ')':	nextCh(); t->kind=Token::rpar;	break;
+			case '(':	nextCh(); parenDepth++; t->kind=Token::lpar;	break;
+			case ')':	nextCh(); if(parenDepth>0){parenDepth--;} t->kind=Token::rpar;	break;
 			case '[':	nextCh(); matrixDepth++; t->kind=Token::lsquare;	break;
 			case ']':	nextCh(); if(matrixDepth>0){matrixDepth--;} t->kind=Token::rsquare;	break;
 			case ',':	nextCh(); t->kind=Token::comma;	break;
@@ -245,7 +247,7 @@ void Scanner::readNumber(Token *t)
 	while(isDecimal(ch));
 
 
-    if((ch=='.' || (ch==',' && matrixDepth==0)) && pos<in.size() && isDecimal(in.at(pos))) // support both decimal separators outside matrix literals
+    if((ch=='.' || (ch==',' && matrixDepth==0 && parenDepth==0)) && pos<in.size() && isDecimal(in.at(pos))) // support both decimal separators outside Matlab list contexts
 	{
         // digits after '.'/','
 		nextCh();

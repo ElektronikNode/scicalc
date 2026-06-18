@@ -12,8 +12,9 @@ die direkte Arbeitsweise eines Taschenrechners mit der Wiederholbarkeit eines
 kleinen Rechenskripts. Eingaben stehen dauerhaft im Dokument, Ergebnisse werden
 direkt darunter angezeigt.
 
-Seit Version 2.1 unterstuetzt scicalc neben Skalaren auch komplexe Zahlen
-sowie Matlab-aehnliche Vektor- und Matrixausdruecke.
+Seit Version 2.2 unterstuetzt scicalc neben Skalaren auch komplexe Zahlen
+sowie Matlab-aehnliche Vektor- und Matrixausdruecke mit typischen
+Vektor-, Matrix- und Analysefunktionen.
 
 ## 2. Bedienung
 
@@ -35,8 +36,9 @@ Matrizen die Dimension.
 ## 3. Zahlen und Einheiten
 
 scicalc rechnet numerisch mit komplexfaehigen Gleitkommazahlen. Als
-Dezimaltrennzeichen werden `.` und `,` akzeptiert. In Matrixliteralen trennt
-`,` jedoch Spalten, damit Matlab-Syntax wie `[1, 2; 3, 4]` funktioniert.
+Dezimaltrennzeichen werden `.` und `,` akzeptiert. In Matrixliteralen und
+Funktionsargumenten trennt `,` jedoch Werte, damit Matlab-Syntax wie
+`[1, 2; 3, 4]` und `zeros(2,3)` funktioniert.
 
 Zahlen koennen mit Zehnerpotenzen und SI-Praefixen eingegeben werden:
 
@@ -174,6 +176,34 @@ inv(A)              Matrix invertieren
 getVersion()        scicalc-Version ausgeben
 ```
 
+Matlab-kompatible Vektor- und Matrixfunktionen:
+
+```
+sum(A), prod(A)              Summe und Produkt
+cumsum(A), cumprod(A)        kumulierte Summe und kumuliertes Produkt
+min(A), max(A)               Minimum und Maximum
+mean(A), median(A)           Mittelwert und Median
+std(A), var(A)               Standardabweichung und Varianz
+size(A), length(A), numel(A) Dimensionen und Elementanzahl
+reshape(A,m,n)               Matrix in neuer Form, spaltenweise wie Matlab
+zeros(m,n), ones(m,n)        Null- und Einsmatrizen
+eye(m,n)                     Einheitsmatrix, auch rechteckig
+diag(v), diag(A)             Diagonalmatrix bzw. Diagonalvektor
+linspace(a,b,n)              n linear verteilte Werte
+logspace(a,b,n)              n logarithmisch verteilte Werte 10^a..10^b
+det(A), trace(A), rank(A)    Determinante, Spur und Rang
+norm(A)                      Vektor- bzw. Matrixnorm
+dot(a,b), cross(a,b)         Skalar- und Kreuzprodukt
+eig(A)                       Eigenwerte als Spaltenvektor
+diff(A), gradient(A)         Differenzen und numerischer Gradient
+sort(A), unique(A)           sortieren und eindeutige Werte
+trapz(A)                     Trapezregel
+unwrap(A)                    Phasenspruenge um 2*pi entfernen
+```
+
+Viele Funktionen akzeptieren wie Matlab optional eine Dimension `1` oder `2`,
+z.B. `sum(A,2)`, `cumsum(A,1)`, `diff(A,1,2)`, `sort(A,1)`.
+
 Skriptweite Anzeigeoptionen:
 
 ```
@@ -199,10 +229,11 @@ Matrix- und Vektorwerte verwenden ein Matlab-aehnliches Literalformat:
 [1, 2; 3, 4]     Kommas als Spaltentrenner
 ```
 
-Hinweis: Ausserhalb von Matrixliteralen kann wie bisher das Dezimalkomma
-verwendet werden, z.B. `5,4`. Innerhalb von `[...]` folgt scicalc der
-Matlab-Syntax: Kommas trennen Elemente. Dezimalzahlen in Vektoren und Matrizen
-daher mit Punkt schreiben, z.B. `[5.4 6 7]`.
+Hinweis: Ausserhalb von Matrixliteralen und Funktionsargumenten kann wie bisher
+das Dezimalkomma verwendet werden, z.B. `5,4`. Innerhalb von `[...]` und `(...)`
+folgt scicalc der Matlab-Syntax: Kommas trennen Elemente bzw. Argumente.
+Dezimalzahlen dort daher mit Punkt schreiben, z.B. `[5.4 6 7]` oder
+`linspace(1.5,5,4)`.
 
 Ranges erzeugen Zeilenvektoren:
 
@@ -314,7 +345,7 @@ build/scicalc
 ```
 
 Die Buildnummer wird bei jedem Build automatisch erhoeht. `getVersion()` zeigt
-die Version inklusive dreistelliger Buildnummer an, z.B. `2.1.1-###`.
+die Version inklusive dreistelliger Buildnummer an, z.B. `2.2.0-###`.
 
 ## 14. Debian-Paket
 

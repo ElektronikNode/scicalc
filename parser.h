@@ -64,6 +64,31 @@ private:
 	static Value negate(Value value);
 	static Value mapUnary(Value value, Value::Number (*function)(Value::Number), QString context);
 	static Value mapBinary(Value left, Value right, Value::Number (*function)(Value::Number, Value::Number), QString context);
+	static int requireInteger(Value value, QString context);
+	static int dimensionArgument(Value value, QString context);
+	static int firstNonSingletonDimension(Value value);
+	static Value reduce(Value value, QString function, int dimension);
+	static Value cumulative(Value value, QString function, int dimension);
+	static Value sizeFunction(QList<Value> args, QString context);
+	static Value reshape(Value value, int rows, int columns);
+	static Value zeros(int rows, int columns);
+	static Value ones(int rows, int columns);
+	static Value eye(int rows, int columns);
+	static Value diag(Value value);
+	static Value linspace(Value start, Value end, int count, bool logarithmic);
+	static Value determinant(Value value);
+	static Value trace(Value value);
+	static Value rank(Value value);
+	static Value norm(Value value);
+	static Value dot(Value left, Value right);
+	static Value cross(Value left, Value right);
+	static Value eig(Value value);
+	static Value diff(Value value, int order, int dimension);
+	static Value gradient(Value value, int dimension);
+	static Value sort(Value value, int dimension);
+	static Value unique(Value value);
+	static Value trapz(Value value, int dimension);
+	static Value unwrap(Value value, int dimension);
 
 	static void check(Token::Kind expected);
 
