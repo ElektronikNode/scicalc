@@ -24,7 +24,17 @@
        <enum>QLayout::SetNoConstraint</enum>
       </property>
       <item>
-       <widget class="ScicalcEdit" name="edit_input"/>
+       <widget class="QTabWidget" name="tabWidget">
+        <property name="tabsClosable">
+         <bool>true</bool>
+        </property>
+        <property name="movable">
+         <bool>true</bool>
+        </property>
+        <property name="documentMode">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -146,10 +156,10 @@
   </action>
   <action name="actionNew">
    <property name="text">
-    <string>New</string>
+    <string>New Tab</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+N</string>
+    <string>Ctrl+T</string>
    </property>
   </action>
   <action name="actionReadme">
@@ -184,13 +194,7 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>ScicalcEdit</class>
-   <extends>QTextEdit</extends>
-   <header>scicalcedit.h</header>
-  </customwidget>
- </customwidgets>
+ <customwidgets/>
  <resources/>
  <connections/>
 </ui>

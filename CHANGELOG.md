@@ -1,6 +1,11 @@
 scicalc changelog
 =================
 
+# V2.1.1
+* Tabs fuer mehrere parallele scicalc-Dokumente
+* Ungespeicherte Tabs werden ueber Sessions hinweg wiederhergestellt
+* Neue Tabs erhalten einen Erstellzeitpunkt fuer Fenstertitel und Dateinamenvorschlag
+
 # V2.1.0
 * Komplexe Zahlen mit `i` und `j`, z.B. `3+4i`, `2j` und `5k+3mj #V`
 * Komplexe Ausgabe mit scicalc-Suffixen, z.B. `(5k + 3mj)V`

@@ -21,6 +21,12 @@ Im Textfeld koennen Rechenanweisungen eingegeben werden. Um die Berechnung zu
 aktualisieren, beenden Sie die aktuelle Zeile mit Return oder druecken Sie
 Strg+R.
 
+Mit Strg+T oder dem `+` neben der Tab-Leiste wird ein neuer Tab erstellt. Tabs
+koennen verschoben und ueber das Kreuz oder per Mittelklick geschlossen werden.
+Ein Doppelklick rechts neben dem letzten Tab erstellt ebenfalls einen neuen Tab.
+Ungespeicherte Tabs werden beim Beenden in der Session abgelegt und beim
+naechsten Start wiederhergestellt.
+
 Variablen, Konstanten und Funktionen werden beim Tippen vorgeschlagen. Die
 Vorschlagsliste erscheint automatisch ab dem ersten Zeichen eines Namens oder
 manuell mit Strg+Space. Bei Variablen wird der aktuelle Wert angezeigt; bei
@@ -267,6 +273,10 @@ uebersprungen.
 scicalc kann Skripte speichern und laden. Optional kann beim Beenden automatisch
 gespeichert und beim Start die letzte Datei geladen werden.
 
+Neue Tabs erhalten beim Anlegen einen Erstellzeitpunkt. Dieser Zeitpunkt wird im
+Fenstertitel angezeigt und fuer den vorgeschlagenen Standard-Dateinamen beim
+Speichern verwendet, z.B. `scicalc-2026-06-18_17-30-00.sc`.
+
 ## 11. Kommandozeile
 
 scicalc kann Skripte auch ohne GUI auswerten:
@@ -304,7 +314,7 @@ build/scicalc
 ```
 
 Die Buildnummer wird bei jedem Build automatisch erhoeht. `getVersion()` zeigt
-die Version inklusive dreistelliger Buildnummer an, z.B. `2.1.0-###`.
+die Version inklusive dreistelliger Buildnummer an, z.B. `2.1.1-###`.
 
 ## 14. Debian-Paket
 

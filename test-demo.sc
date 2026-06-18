@@ -2,16 +2,16 @@
 % Open this file in scicalc and refresh the document.
 
 getVersion()
-				2.1.0-012
+				2.1.1-004
 
 // Accounting for line based continued calculations:
 setAccounting(1)
-				1.000000
+				1.000
 
 3+5
-				8.000000
+				8.000
 +2
-				10.00000
+				10.00
 
 
 % Display setup for this demo
@@ -47,18 +47,6 @@ floor(1.8)
 				1
 round(1.5)
 				2
-
-% Complex numbers
-3+4i
-				3+4j
-sqrt(-1)
-				1j
-5k+3mj #V
-				(5k+3mj)V
-abs(3+4i)
-				5
-conj(3+4i)
-				3-4j
 
 % Variables and previous result
 a=3
@@ -160,17 +148,10 @@ A/[2 0; 0 2]
 [1:3; 4:6]
 				⎡ 1  2  3 ⎤
 				⎣ 4  5  6 ⎦
+sin(A)
+				⎡ 841.471m   909.297m ⎤
+				⎣  141.12m  -756.802m ⎦
 
-% Complex matrices
-Z=[1 i; 2 3]
-				⎡ 1  1j ⎤
-				⎣ 2   3 ⎦
-Z*inv(Z)
-				⎡ 1  0 ⎤
-				⎣ 0  1 ⎦
-sin(Z)
-				⎡ 841.471m  1.1752j ⎤
-				⎣ 909.297m  141.12m ⎦
 
 % Comments and suppressed output
 hidden=123;

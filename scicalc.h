@@ -2,8 +2,10 @@
 #define SCICALC_H
 
 #include <QMainWindow>
+#include <QDateTime>
 #include <QStringList>
 #include "dialoggeneralsettings.h"
+#include "scicalcedit.h"
 
 namespace Ui {
 class scicalc;
@@ -50,18 +52,39 @@ private slots:
 	
 	void on_actionAbout_scicalc_triggered();
 	
-    void on_actionChangelog_triggered();
+	void on_actionChangelog_triggered();
+	void tabChanged(int index);
+	void closeTabRequested(int index);
 
 private:
+	bool eventFilter(QObject *watched, QEvent *event);
 	void closeEvent(QCloseEvent *event);
-	void askForSave();
+	bool askForSave(ScicalcEdit *edit);
+	bool isSaved(ScicalcEdit *edit) const;
 	void setSaved(bool saved);
+	void setSaved(ScicalcEdit *edit, bool saved);
 	void showTextFile(QString filename);
+	ScicalcEdit *currentEdit() const;
+	ScicalcEdit *createTab(QString text=QString(), QString fileName=QString(), QDateTime createdAt=QDateTime(), bool saved=true);
+	void connectEditor(ScicalcEdit *edit);
+	void refreshEditor(ScicalcEdit *edit);
+	void closeTab(int index);
+	bool tabCanClose(int index);
+	bool isEditorEmpty(ScicalcEdit *edit) const;
+	QString tabFileName(ScicalcEdit *edit) const;
+	void setTabFileName(ScicalcEdit *edit, QString fileName);
+	QDateTime tabCreatedAt(ScicalcEdit *edit) const;
+	QString tabDefaultFileName(ScicalcEdit *edit) const;
+	QString tabTitle(ScicalcEdit *edit) const;
+	void updateTabTitle(ScicalcEdit *edit);
+	void updateWindowTitle();
+	void applyEditorSettings(ScicalcEdit *edit);
+	bool loadFileIntoEditor(ScicalcEdit *edit, QString fileName);
+	bool saveEditorToFile(ScicalcEdit *edit, QString fileName);
+	void saveSession();
+	bool restoreSession();
 	
 	static scicalc* myApp;
-	
-	bool saved; // this flag is true, if the content of the editor is saved to file.
-		// it changes to false, if any character of the editor is changed.
 	
 	int temporaryDigits;
 	bool temporaryDigitsActive;
@@ -69,9 +92,6 @@ private:
 	bool temporaryTrailingZerosActive;
 	bool temporaryAccounting;
 	bool temporaryAccountingActive;
-	
-	QString currentFile; // holds the filename including the path to the current file.
-		// it is empty in temporary-mode
 	
 	QString currentPath; // holds the name of the current path
 		// it is used to remember the open/save/save as location in the file-system
